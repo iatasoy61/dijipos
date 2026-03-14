@@ -1,0 +1,1228 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DijiPOS — Just Tap. Order. Pay. Go.</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #03060f;
+  --surface: #080d1c;
+  --card: #0d1428;
+  --accent: #00d4ff;
+  --accent2: #0066ff;
+  --accent3: #7c3aed;
+  --gold: #f59e0b;
+  --text: #e8f0fe;
+  --muted: #6b7db3;
+  --border: rgba(0,212,255,0.15);
+  --glow: 0 0 40px rgba(0,212,255,0.25);
+}
+
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  overflow-x: hidden;
+  cursor: none;
+}
+
+/* CUSTOM CURSOR */
+.cursor { position:fixed; width:8px; height:8px; background:var(--accent); border-radius:50%; pointer-events:none; z-index:9999; transform:translate(-50%,-50%); transition:width .2s,height .2s,background .2s; mix-blend-mode:screen; }
+.cursor-ring { position:fixed; width:36px; height:36px; border:1px solid rgba(0,212,255,0.5); border-radius:50%; pointer-events:none; z-index:9998; transform:translate(-50%,-50%); transition:transform .1s; }
+
+/* CANVAS BG */
+#bg-canvas { position:fixed; inset:0; z-index:0; opacity:.5; }
+
+/* NAV */
+nav {
+  position: fixed; top:0; left:0; right:0; z-index:100;
+  display:flex; align-items:center; justify-content:space-between;
+  padding: 20px 60px;
+  background: rgba(3,6,15,0.7);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border);
+}
+
+.nav-logo {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: 1.6rem;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  letter-spacing: -0.5px;
+}
+.nav-logo span { color: var(--gold); -webkit-text-fill-color: var(--gold); }
+
+.nav-links { display:flex; gap:36px; align-items:center; }
+.nav-links a {
+  text-decoration:none; color:var(--muted); font-size:.875rem;
+  font-weight:500; letter-spacing:.5px; text-transform:uppercase;
+  transition:color .3s;
+}
+.nav-links a:hover { color:var(--accent); }
+
+.nav-lang {
+  display:flex; gap:8px;
+}
+.lang-btn {
+  background:transparent; border:1px solid var(--border); color:var(--muted);
+  padding:6px 14px; border-radius:20px; cursor:pointer; font-size:.75rem;
+  font-weight:600; letter-spacing:1px; transition:all .3s; font-family:'DM Sans',sans-serif;
+}
+.lang-btn.active, .lang-btn:hover { background:var(--accent); border-color:var(--accent); color:#000; }
+
+.nav-cta {
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  color:#000; font-weight:700; padding:10px 24px; border-radius:8px;
+  border:none; cursor:pointer; font-size:.875rem; font-family:'DM Sans',sans-serif;
+  letter-spacing:.5px; transition:transform .2s, box-shadow .2s;
+}
+.nav-cta:hover { transform:translateY(-2px); box-shadow:0 8px 30px rgba(0,212,255,0.4); }
+
+/* HERO */
+.hero {
+  position:relative; z-index:10;
+  min-height:100vh;
+  display:flex; align-items:center; justify-content:center;
+  padding: 140px 60px 80px;
+  overflow: hidden;
+}
+
+.hero-grid {
+  display:grid; grid-template-columns:1fr 1fr; gap:80px;
+  max-width:1200px; width:100%; align-items:center;
+}
+
+.hero-badge {
+  display:inline-flex; align-items:center; gap:8px;
+  background: rgba(0,212,255,0.1); border:1px solid var(--border);
+  padding:8px 16px; border-radius:20px; margin-bottom:24px;
+  font-size:.75rem; letter-spacing:2px; text-transform:uppercase; color:var(--accent);
+}
+.hero-badge::before { content:''; width:6px; height:6px; border-radius:50%; background:var(--accent); animation:pulse 2s infinite; }
+
+.hero-headline {
+  font-family:'Syne', sans-serif;
+  font-size: clamp(2.5rem, 5vw, 4.2rem);
+  font-weight:800; line-height:1.05;
+  letter-spacing:-2px; margin-bottom:28px;
+}
+
+.hero-headline .line1 { display:block; color:var(--text); }
+.hero-headline .line2 {
+  display:block;
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 50%, var(--accent3) 100%);
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+}
+.hero-headline .line3 { display:block; color:var(--text); }
+
+.hero-tagline {
+  font-family:'Syne', sans-serif;
+  font-size:1.1rem; color:var(--gold); letter-spacing:3px;
+  text-transform:uppercase; margin-bottom:16px; font-weight:600;
+}
+
+.hero-sub {
+  color:var(--muted); font-size:1.05rem; line-height:1.7;
+  max-width:500px; margin-bottom:40px;
+}
+
+.hero-actions { display:flex; gap:16px; flex-wrap:wrap; }
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  color:#000; font-weight:700; padding:16px 36px; border-radius:10px;
+  border:none; cursor:pointer; font-size:1rem; font-family:'DM Sans',sans-serif;
+  display:flex; align-items:center; gap:10px; transition:all .3s;
+  text-decoration:none;
+}
+.btn-primary:hover { transform:translateY(-3px); box-shadow:0 16px 40px rgba(0,212,255,0.35); }
+
+.btn-secondary {
+  background:transparent; border:1px solid var(--border); color:var(--text);
+  padding:16px 36px; border-radius:10px; cursor:pointer; font-size:1rem;
+  font-family:'DM Sans',sans-serif; font-weight:500; display:flex; align-items:center;
+  gap:10px; transition:all .3s; text-decoration:none;
+}
+.btn-secondary:hover { border-color:var(--accent); color:var(--accent); background:rgba(0,212,255,0.05); }
+
+/* 3D PHONE MOCKUP */
+.hero-visual {
+  display:flex; align-items:center; justify-content:center;
+  position:relative;
+}
+
+.phone-scene {
+  perspective: 1200px;
+  width:320px; height:640px;
+}
+
+.phone-3d {
+  width:100%; height:100%;
+  transform-style: preserve-3d;
+  animation: phoneFloat 6s ease-in-out infinite, phoneRotate 12s ease-in-out infinite;
+  position:relative;
+}
+
+@keyframes phoneFloat {
+  0%,100% { transform: rotateY(-15deg) rotateX(5deg) translateY(0); }
+  50% { transform: rotateY(-15deg) rotateX(5deg) translateY(-20px); }
+}
+
+@keyframes phoneRotate {
+  0%,100% { transform: rotateY(-15deg) rotateX(5deg); }
+  50% { transform: rotateY(-25deg) rotateX(8deg); }
+}
+
+.phone-body {
+  position:absolute; inset:0;
+  background: linear-gradient(145deg, #1a1f35, #0d1228);
+  border-radius:40px;
+  border:2px solid rgba(255,255,255,0.1);
+  box-shadow:
+    0 0 0 1px rgba(0,212,255,0.2),
+    0 40px 80px rgba(0,0,0,0.8),
+    inset 0 1px 0 rgba(255,255,255,0.1),
+    -20px 0 60px rgba(0,102,255,0.15),
+    20px 0 60px rgba(124,58,237,0.1);
+  overflow:hidden;
+  display:flex; flex-direction:column;
+}
+
+.phone-notch {
+  width:120px; height:28px; background:#0d1228;
+  border-radius:0 0 16px 16px; margin:0 auto;
+  border-bottom:1px solid rgba(255,255,255,0.05);
+}
+
+.phone-screen {
+  flex:1; padding:16px; display:flex; flex-direction:column; gap:12px;
+  overflow:hidden;
+}
+
+.phone-brand {
+  text-align:center; font-family:'Syne',sans-serif;
+  font-size:1rem; font-weight:800;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+  padding-bottom:8px; border-bottom:1px solid var(--border);
+}
+
+.tap-indicator {
+  background: linear-gradient(135deg, rgba(0,212,255,0.15), rgba(0,102,255,0.1));
+  border:1px solid var(--border); border-radius:16px; padding:20px;
+  text-align:center;
+}
+.tap-icon {
+  font-size:2.5rem; margin-bottom:8px; display:block;
+  animation: tapPulse 2s ease-in-out infinite;
+}
+@keyframes tapPulse {
+  0%,100% { transform:scale(1); }
+  50% { transform:scale(1.15); }
+}
+.tap-text { font-size:.7rem; color:var(--accent); letter-spacing:2px; text-transform:uppercase; font-weight:600; }
+
+.phone-items { display:flex; flex-direction:column; gap:8px; }
+.phone-item {
+  display:flex; align-items:center; gap:10px;
+  background:rgba(255,255,255,0.03); border-radius:10px; padding:10px 12px;
+  border:1px solid rgba(255,255,255,0.05);
+}
+.phone-item-icon { font-size:1.2rem; }
+.phone-item-info { flex:1; }
+.phone-item-name { font-size:.7rem; font-weight:600; color:var(--text); }
+.phone-item-price { font-size:.65rem; color:var(--muted); }
+.phone-item-badge { font-size:.6rem; background:var(--accent); color:#000; padding:2px 8px; border-radius:8px; font-weight:700; }
+
+.phone-pay-btn {
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  color:#000; font-weight:800; padding:14px; border-radius:14px;
+  text-align:center; font-size:.85rem; letter-spacing:1px;
+  font-family:'Syne',sans-serif; margin-top:auto;
+  animation: glowPulse 3s ease-in-out infinite;
+}
+@keyframes glowPulse {
+  0%,100% { box-shadow:0 0 20px rgba(0,212,255,0.3); }
+  50% { box-shadow:0 0 40px rgba(0,212,255,0.6); }
+}
+
+/* Floating orbs */
+.orb {
+  position:absolute; border-radius:50%; filter:blur(60px); pointer-events:none;
+}
+.orb1 { width:300px; height:300px; background:rgba(0,102,255,0.15); top:-10%; right:-5%; animation:orbFloat 8s ease-in-out infinite; }
+.orb2 { width:200px; height:200px; background:rgba(124,58,237,0.12); bottom:5%; left:-5%; animation:orbFloat 6s ease-in-out infinite reverse; }
+.orb3 { width:150px; height:150px; background:rgba(0,212,255,0.1); top:40%; left:10%; animation:orbFloat 10s ease-in-out infinite 2s; }
+
+@keyframes orbFloat {
+  0%,100% { transform:translateY(0) scale(1); }
+  50% { transform:translateY(-30px) scale(1.1); }
+}
+
+/* STATS BAR */
+.stats-bar {
+  position:relative; z-index:10;
+  background: rgba(8,13,28,0.9); border-top:1px solid var(--border); border-bottom:1px solid var(--border);
+  padding:24px 60px; backdrop-filter:blur(20px);
+}
+.stats-inner {
+  max-width:1200px; margin:0 auto;
+  display:grid; grid-template-columns:repeat(4,1fr); gap:40px;
+}
+.stat-item { text-align:center; }
+.stat-number {
+  font-family:'Syne',sans-serif; font-size:2rem; font-weight:800;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+}
+.stat-label { font-size:.75rem; color:var(--muted); letter-spacing:1px; text-transform:uppercase; margin-top:4px; }
+
+/* SECTION BASE */
+section {
+  position:relative; z-index:10;
+  padding:100px 60px;
+}
+
+.section-tag {
+  display:inline-flex; align-items:center; gap:8px;
+  color:var(--accent); font-size:.7rem; letter-spacing:3px; text-transform:uppercase;
+  font-weight:700; margin-bottom:16px;
+}
+.section-tag::before { content:''; width:20px; height:1px; background:var(--accent); }
+
+.section-title {
+  font-family:'Syne',sans-serif; font-size:clamp(2rem,3.5vw,3rem);
+  font-weight:800; line-height:1.1; letter-spacing:-1.5px;
+  margin-bottom:20px;
+}
+
+.section-sub {
+  color:var(--muted); font-size:1.05rem; line-height:1.7;
+  max-width:600px;
+}
+
+.container { max-width:1200px; margin:0 auto; }
+
+/* SLIDER / HOW IT WORKS */
+.how-section { background:var(--surface); }
+
+.steps-grid {
+  display:grid; grid-template-columns:repeat(4,1fr); gap:24px;
+  margin-top:60px;
+}
+
+.step-card {
+  background:var(--card); border:1px solid var(--border); border-radius:20px;
+  padding:32px 24px; text-align:center; position:relative; overflow:hidden;
+  transition:transform .3s, border-color .3s, box-shadow .3s;
+}
+.step-card:hover {
+  transform:translateY(-8px);
+  border-color:var(--accent);
+  box-shadow: var(--glow), 0 30px 60px rgba(0,0,0,0.5);
+}
+.step-card::before {
+  content:''; position:absolute; top:0; left:50%; transform:translateX(-50%);
+  width:100px; height:2px;
+  background:linear-gradient(90deg, transparent, var(--accent), transparent);
+}
+.step-num {
+  font-family:'Syne',sans-serif; font-size:3rem; font-weight:800;
+  background:linear-gradient(135deg, var(--accent), var(--accent2));
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+  opacity:.3; position:absolute; top:16px; right:20px; line-height:1;
+}
+.step-icon { font-size:2.8rem; margin-bottom:16px; display:block; }
+.step-name {
+  font-family:'Syne',sans-serif; font-size:1.2rem; font-weight:700;
+  color:var(--accent); margin-bottom:8px; letter-spacing:.5px;
+}
+.step-desc { font-size:.875rem; color:var(--muted); line-height:1.6; }
+
+/* SLIDER */
+.product-slider {
+  margin-top:60px; overflow:hidden; position:relative;
+}
+.slider-track {
+  display:flex; gap:24px;
+  animation: slide 30s linear infinite;
+  width:max-content;
+}
+.slider-track:hover { animation-play-state:paused; }
+
+@keyframes slide {
+  0% { transform:translateX(0); }
+  100% { transform:translateX(-50%); }
+}
+
+.slider-card {
+  background:var(--card); border:1px solid var(--border); border-radius:20px;
+  padding:32px 28px; width:280px; flex-shrink:0;
+  transition:border-color .3s, transform .3s;
+}
+.slider-card:hover { border-color:var(--accent); transform:scale(1.03); }
+.slider-card-icon { font-size:2.5rem; margin-bottom:16px; }
+.slider-card-name {
+  font-family:'Syne',sans-serif; font-size:1.1rem; font-weight:700;
+  background:linear-gradient(135deg, var(--accent), var(--accent2));
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+  margin-bottom:8px;
+}
+.slider-card-desc { font-size:.8rem; color:var(--muted); line-height:1.6; }
+.slider-card-tag {
+  display:inline-block; margin-top:12px;
+  background:rgba(0,212,255,0.1); border:1px solid var(--border);
+  padding:4px 12px; border-radius:20px; font-size:.7rem; color:var(--accent);
+  letter-spacing:1px; text-transform:uppercase;
+}
+
+/* PROBLEM/SOLUTION */
+.ps-grid {
+  display:grid; grid-template-columns:1fr 1fr; gap:40px; margin-top:60px;
+}
+
+.ps-card {
+  border-radius:24px; padding:48px 40px; position:relative; overflow:hidden;
+}
+.ps-card.problem {
+  background:linear-gradient(135deg, rgba(239,68,68,0.08), rgba(220,38,38,0.04));
+  border:1px solid rgba(239,68,68,0.2);
+}
+.ps-card.solution {
+  background:linear-gradient(135deg, rgba(0,212,255,0.08), rgba(0,102,255,0.04));
+  border:1px solid var(--border);
+}
+.ps-card-header {
+  display:flex; align-items:center; gap:16px; margin-bottom:32px;
+}
+.ps-card-icon { font-size:2rem; }
+.ps-card-title {
+  font-family:'Syne',sans-serif; font-size:1.5rem; font-weight:800;
+}
+.ps-card.problem .ps-card-title { color:#f87171; }
+.ps-card.solution .ps-card-title { color:var(--accent); }
+
+.ps-list { list-style:none; display:flex; flex-direction:column; gap:14px; }
+.ps-list li {
+  display:flex; align-items:center; gap:12px; font-size:.95rem; color:var(--muted);
+}
+.ps-list li::before {
+  content:''; width:6px; height:6px; border-radius:50%; flex-shrink:0;
+}
+.problem .ps-list li::before { background:#f87171; }
+.solution .ps-list li::before { background:var(--accent); }
+
+/* VALUE PROPS - 3 cols */
+.value-section { background: var(--bg); }
+.value-tabs {
+  display:flex; gap:8px; margin:40px 0 48px;
+  background:var(--card); border:1px solid var(--border); border-radius:12px;
+  padding:6px; width:fit-content;
+}
+.value-tab {
+  padding:10px 24px; border-radius:8px; cursor:pointer; font-size:.875rem;
+  font-weight:600; transition:all .3s; border:none; font-family:'DM Sans',sans-serif;
+  color:var(--muted); background:transparent; letter-spacing:.5px;
+}
+.value-tab.active { background:linear-gradient(135deg,var(--accent),var(--accent2)); color:#000; }
+
+.value-panels { position:relative; }
+.value-panel { display:none; }
+.value-panel.active { display:grid; grid-template-columns:repeat(3,1fr); gap:20px; }
+
+.value-item {
+  background:var(--card); border:1px solid var(--border); border-radius:16px;
+  padding:28px 24px; transition:all .3s;
+}
+.value-item:hover { border-color:var(--accent); transform:translateY(-4px); box-shadow:var(--glow); }
+.value-item-icon { font-size:1.8rem; margin-bottom:16px; }
+.value-item-title { font-family:'Syne',sans-serif; font-weight:700; font-size:1rem; margin-bottom:8px; color:var(--text); }
+.value-item-desc { font-size:.825rem; color:var(--muted); line-height:1.6; }
+
+/* SECTORS */
+.sectors-section { background:var(--surface); }
+
+.sectors-grid {
+  display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-top:60px;
+}
+
+.sector-card {
+  background:var(--card); border:1px solid var(--border); border-radius:16px;
+  padding:24px; transition:all .3s; cursor:pointer; position:relative;
+  overflow:hidden;
+}
+.sector-card::after {
+  content:''; position:absolute; inset:0;
+  background:linear-gradient(135deg, rgba(0,212,255,0.05), transparent);
+  opacity:0; transition:opacity .3s;
+}
+.sector-card:hover { border-color:var(--accent); transform:translateY(-6px); box-shadow:var(--glow); }
+.sector-card:hover::after { opacity:1; }
+.sector-icon { font-size:2rem; margin-bottom:12px; display:block; }
+.sector-name {
+  font-family:'Syne',sans-serif; font-size:.95rem; font-weight:700;
+  color:var(--text); margin-bottom:6px;
+}
+.sector-desc { font-size:.775rem; color:var(--muted); line-height:1.5; }
+
+/* PLATFORM LAYERS */
+.layers-section { overflow:hidden; }
+.layers-visual {
+  display:flex; flex-direction:column; gap:16px; margin-top:60px; max-width:800px; margin-left:auto; margin-right:auto;
+}
+.layer-item {
+  display:flex; align-items:center; gap:24px;
+  background:var(--card); border:1px solid var(--border); border-radius:16px;
+  padding:24px 32px; transition:all .4s;
+  transform:translateX(0);
+}
+.layer-item:hover { border-color:var(--accent); box-shadow:var(--glow); transform:translateX(8px); }
+.layer-num {
+  font-family:'Syne',sans-serif; font-size:2.5rem; font-weight:800; line-height:1;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+  flex-shrink:0; width:60px;
+}
+.layer-content { flex:1; }
+.layer-title { font-family:'Syne',sans-serif; font-weight:700; font-size:1.1rem; color:var(--text); margin-bottom:4px; }
+.layer-desc { font-size:.875rem; color:var(--muted); }
+.layer-tag {
+  background:rgba(0,212,255,0.1); border:1px solid var(--border);
+  padding:8px 16px; border-radius:20px; font-size:.7rem; color:var(--accent);
+  letter-spacing:1px; text-transform:uppercase; flex-shrink:0;
+}
+
+/* CTA SECTION */
+.cta-section {
+  text-align:center; padding:120px 60px;
+  background:linear-gradient(180deg, var(--bg) 0%, rgba(0,102,255,0.05) 50%, var(--bg) 100%);
+}
+.cta-title {
+  font-family:'Syne',sans-serif; font-size:clamp(2.5rem,5vw,4rem);
+  font-weight:800; letter-spacing:-2px; margin-bottom:24px;
+}
+.cta-title span {
+  background:linear-gradient(135deg,var(--accent),var(--accent2),var(--accent3));
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+}
+.cta-sub { color:var(--muted); font-size:1.1rem; margin-bottom:48px; }
+.cta-buttons { display:flex; gap:20px; justify-content:center; flex-wrap:wrap; }
+
+/* FOOTER */
+footer {
+  background:var(--surface); border-top:1px solid var(--border);
+  padding:60px; position:relative; z-index:10;
+}
+.footer-inner {
+  max-width:1200px; margin:0 auto;
+  display:grid; grid-template-columns:2fr 1fr 1fr 1fr; gap:60px;
+}
+.footer-brand .brand-logo {
+  font-family:'Syne',sans-serif; font-weight:800; font-size:1.8rem;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+  margin-bottom:16px; display:block;
+}
+.footer-brand p { color:var(--muted); font-size:.875rem; line-height:1.7; max-width:280px; }
+.footer-col h4 {
+  font-family:'Syne',sans-serif; font-weight:700; font-size:.875rem;
+  color:var(--text); margin-bottom:20px; letter-spacing:1px; text-transform:uppercase;
+}
+.footer-col a {
+  display:block; color:var(--muted); text-decoration:none; font-size:.825rem;
+  margin-bottom:10px; transition:color .2s;
+}
+.footer-col a:hover { color:var(--accent); }
+.footer-bottom {
+  max-width:1200px; margin:40px auto 0; padding-top:24px;
+  border-top:1px solid var(--border);
+  display:flex; justify-content:space-between; align-items:center;
+  color:var(--muted); font-size:.8rem;
+}
+
+/* ANIMATIONS */
+@keyframes pulse {
+  0%,100% { opacity:1; transform:scale(1); }
+  50% { opacity:.5; transform:scale(1.5); }
+}
+
+.reveal {
+  opacity:0; transform:translateY(30px);
+  transition:opacity .7s ease, transform .7s ease;
+}
+.reveal.visible { opacity:1; transform:translateY(0); }
+
+/* Language toggle */
+[data-lang="en"] { display:none; }
+body.lang-en [data-lang="tr"] { display:none; }
+body.lang-en [data-lang="en"] { display:block; }
+body.lang-en [data-lang-inline="en"] { display:inline; }
+body.lang-en [data-lang-inline="tr"] { display:none; }
+[data-lang-inline="en"] { display:none; }
+
+/* Responsive */
+@media(max-width:900px){
+  nav { padding:16px 24px; }
+  .nav-links { display:none; }
+  .hero { padding:120px 24px 60px; }
+  .hero-grid { grid-template-columns:1fr; gap:40px; }
+  .hero-visual { display:none; }
+  section { padding:60px 24px; }
+  .steps-grid { grid-template-columns:1fr 1fr; }
+  .ps-grid { grid-template-columns:1fr; }
+  .value-panel.active { grid-template-columns:1fr 1fr; }
+  .sectors-grid { grid-template-columns:1fr 1fr; }
+  .stats-inner { grid-template-columns:2fr 2fr; gap:20px; }
+  .footer-inner { grid-template-columns:1fr 1fr; gap:32px; }
+  .stats-bar { padding:24px; }
+}
+</style>
+</head>
+<body>
+
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+
+<canvas id="bg-canvas"></canvas>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">Diji<span>POS</span></div>
+  <div class="nav-links">
+    <a href="#how"><span data-lang-inline="tr">Nasıl Çalışır</span><span data-lang-inline="en">How It Works</span></a>
+    <a href="#sectors"><span data-lang-inline="tr">Sektörler</span><span data-lang-inline="en">Sectors</span></a>
+    <a href="#platform"><span data-lang-inline="tr">Platform</span><span data-lang-inline="en">Platform</span></a>
+    <a href="#value"><span data-lang-inline="tr">Değer Önerisi</span><span data-lang-inline="en">Value Prop</span></a>
+  </div>
+  <div style="display:flex;align-items:center;gap:16px;">
+    <div class="nav-lang">
+      <button class="lang-btn active" onclick="setLang('tr')" id="btnTr">TR</button>
+      <button class="lang-btn" onclick="setLang('en')" id="btnEn">EN</button>
+    </div>
+    <button class="nav-cta" onclick="document.getElementById('demo-form').scrollIntoView({behavior:'smooth'})">
+      <span data-lang-inline="tr">Demo Talebi</span><span data-lang-inline="en">Request Demo</span>
+    </button>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="orb orb1"></div>
+  <div class="orb orb2"></div>
+  <div class="orb orb3"></div>
+
+  <div class="hero-grid">
+    <div class="hero-content">
+      <div class="hero-badge">
+        <span data-lang-inline="tr">Omni Channel Ödeme Altyapısı</span>
+        <span data-lang-inline="en">Omni Channel Payment Infrastructure</span>
+      </div>
+      <div class="hero-tagline">Just Tap. Order. Pay. Go.</div>
+      <h1 class="hero-headline">
+        <span class="line1" data-lang="tr">Fiziksel Dünyayı</span>
+        <span class="line1" data-lang="en">Connecting the Physical World</span>
+        <span class="line2" data-lang="tr">Dijital Ticarete</span>
+        <span class="line2" data-lang="en">to Digital Commerce</span>
+        <span class="line3" data-lang="tr">Bağlayan Altyapı</span>
+        <span class="line3" data-lang="en">Infrastructure</span>
+      </h1>
+      <p class="hero-sub" data-lang="tr">
+        Gelişen teknoloji ve değişen pazar dinamikleri, ticaretin geleceğini yeniden yazıyor. DijiPOS ile operasyonel maliyetlerinizi minimize edin, her noktayı akıllı bir ödeme ve sipariş düğümüne dönüştürün.
+      </p>
+      <p class="hero-sub" data-lang="en">
+        Evolving technology and shifting market dynamics are rewriting the future of commerce. With DijiPOS, minimize operational costs and transform every point into an intelligent payment and order node.
+      </p>
+      <div class="hero-actions">
+        <a href="#demo-form" class="btn-primary">
+          🚀 <span data-lang-inline="tr">Demo Talep Et</span><span data-lang-inline="en">Request Demo</span>
+        </a>
+        <a href="#how" class="btn-secondary">
+          ▶ <span data-lang-inline="tr">Nasıl Çalışır?</span><span data-lang-inline="en">How It Works?</span>
+        </a>
+      </div>
+    </div>
+
+    <div class="hero-visual">
+      <div class="phone-scene">
+        <div class="phone-3d">
+          <div class="phone-body">
+            <div class="phone-notch"></div>
+            <div class="phone-screen">
+              <div class="phone-brand">DijiPOS</div>
+              <div class="tap-indicator">
+                <span class="tap-icon">📱</span>
+                <div class="tap-text">NFC · QR · Tap to Order</div>
+              </div>
+              <div class="phone-items">
+                <div class="phone-item">
+                  <span class="phone-item-icon">☕</span>
+                  <div class="phone-item-info">
+                    <div class="phone-item-name">Filtre Kahve</div>
+                    <div class="phone-item-price">₺65</div>
+                  </div>
+                  <span class="phone-item-badge">+1</span>
+                </div>
+                <div class="phone-item">
+                  <span class="phone-item-icon">🥐</span>
+                  <div class="phone-item-info">
+                    <div class="phone-item-name">Kruvasan</div>
+                    <div class="phone-item-price">₺45</div>
+                  </div>
+                  <span class="phone-item-badge">+1</span>
+                </div>
+                <div class="phone-item">
+                  <span class="phone-item-icon">⚡</span>
+                  <div class="phone-item-info">
+                    <div class="phone-item-name">EV Şarj — A2</div>
+                    <div class="phone-item-price">₺0.85/kWh</div>
+                  </div>
+                  <span class="phone-item-badge">+1</span>
+                </div>
+              </div>
+              <div class="phone-pay-btn">⚡ PAY ₺155</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- STATS -->
+<div class="stats-bar">
+  <div class="stats-inner">
+    <div class="stat-item">
+      <div class="stat-number">0</div>
+      <div class="stat-label" data-lang="tr">POS İhtiyacı</div>
+      <div class="stat-label" data-lang="en">POS Required</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-number">12+</div>
+      <div class="stat-label" data-lang="tr">Sektör Çözümü</div>
+      <div class="stat-label" data-lang="en">Sector Solutions</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-number">4</div>
+      <div class="stat-label" data-lang="tr">Platform Katmanı</div>
+      <div class="stat-label" data-lang="en">Platform Layers</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-number">100%</div>
+      <div class="stat-label" data-lang="tr">Temassız & SaaS</div>
+      <div class="stat-label" data-lang="en">Contactless & SaaS</div>
+    </div>
+  </div>
+</div>
+
+<!-- PRODUCT SLIDER -->
+<section id="how" class="how-section">
+  <div class="container">
+    <div class="reveal">
+      <div class="section-tag" data-lang="tr">Ürün Ailesi</div>
+      <div class="section-tag" data-lang="en">Product Suite</div>
+      <h2 class="section-title" data-lang="tr">Paketlenmiş Çözümler</h2>
+      <h2 class="section-title" data-lang="en">Packaged Solutions</h2>
+      <p class="section-sub" data-lang="tr">Tüm altyapıyı ücretsiz olarak sunuyoruz. Siz sadece büyüyün.</p>
+      <p class="section-sub" data-lang="en">We provide the entire infrastructure for free. You just grow.</p>
+    </div>
+
+    <div class="product-slider reveal">
+      <div class="slider-track" id="sliderTrack"></div>
+    </div>
+
+    <div class="steps-grid reveal" style="margin-top:80px;">
+      <div class="step-card">
+        <span class="step-num">01</span>
+        <span class="step-icon">📡</span>
+        <div class="step-name">Tap</div>
+        <p class="step-desc" data-lang="tr">NFC veya QR ile sisteme bağlan. Uygulama indirmeye gerek yok.</p>
+        <p class="step-desc" data-lang="en">Connect via NFC or QR. No app download needed.</p>
+      </div>
+      <div class="step-card">
+        <span class="step-num">02</span>
+        <span class="step-icon">📋</span>
+        <div class="step-name">Order</div>
+        <p class="step-desc" data-lang="tr">Menüyü gör, seç, özelleştir. Saniyeler içinde sipariş ver.</p>
+        <p class="step-desc" data-lang="en">See the menu, select, customize. Order in seconds.</p>
+      </div>
+      <div class="step-card">
+        <span class="step-num">03</span>
+        <span class="step-icon">💳</span>
+        <div class="step-name">Pay</div>
+        <p class="step-desc" data-lang="tr">Temassız ödeme. Puan kazan. Sadakat sistemi entegre.</p>
+        <p class="step-desc" data-lang="en">Contactless payment. Earn points. Loyalty built-in.</p>
+      </div>
+      <div class="step-card">
+        <span class="step-num">04</span>
+        <span class="step-icon">🚀</span>
+        <div class="step-name">Go</div>
+        <p class="step-desc" data-lang="tr">Beklemeden git. Kasada sıra yok, personel bekleme yok.</p>
+        <p class="step-desc" data-lang="en">Leave without waiting. No queue, no cashier needed.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PROBLEM / SOLUTION -->
+<section>
+  <div class="container">
+    <div class="reveal">
+      <div class="section-tag" data-lang="tr">Problem → Çözüm</div>
+      <div class="section-tag" data-lang="en">Problem → Solution</div>
+      <h2 class="section-title" data-lang="tr">Geleneksel ticaret pahalı. Biz değişimi getiriyoruz.</h2>
+      <h2 class="section-title" data-lang="en">Traditional commerce is expensive. We bring change.</h2>
+    </div>
+
+    <div class="ps-grid reveal">
+      <div class="ps-card problem">
+        <div class="ps-card-header">
+          <span class="ps-card-icon">⚠️</span>
+          <div class="ps-card-title" data-lang="tr">Bugünün Problemi</div>
+          <div class="ps-card-title" data-lang="en">Today's Problem</div>
+        </div>
+        <ul class="ps-list">
+          <li data-lang="tr">Pahalı POS cihazları gerekiyor</li>
+          <li data-lang="en">Expensive POS devices required</li>
+          <li data-lang="tr">Kiosk ve kasa maliyetleri</li>
+          <li data-lang="en">Kiosk and cashier costs</li>
+          <li data-lang="tr">Fazla personel ihtiyacı</li>
+          <li data-lang="en">Excessive staffing needs</li>
+          <li data-lang="tr">Yavaş operasyon, uzun kuyruklar</li>
+          <li data-lang="en">Slow operations, long queues</li>
+          <li data-lang="tr">Kurulum ve bakım maliyeti</li>
+          <li data-lang="en">Installation and maintenance costs</li>
+          <li data-lang="tr">Veri analitiği eksikliği</li>
+          <li data-lang="en">Lack of data analytics</li>
+        </ul>
+      </div>
+      <div class="ps-card solution">
+        <div class="ps-card-header">
+          <span class="ps-card-icon">✅</span>
+          <div class="ps-card-title" data-lang="tr">DijiPOS Çözümü</div>
+          <div class="ps-card-title" data-lang="en">DijiPOS Solution</div>
+        </div>
+        <ul class="ps-list">
+          <li data-lang="tr">POS yok — NFC/QR node yeterli</li>
+          <li data-lang="en">No POS — NFC/QR node is enough</li>
+          <li data-lang="tr">Kiosk yok, kasa yok</li>
+          <li data-lang="en">No kiosk, no cashier</li>
+          <li data-lang="tr">Personel ihtiyacı minimize</li>
+          <li data-lang="en">Minimized staffing needs</li>
+          <li data-lang="tr">Sıfır kurulum, tam SaaS</li>
+          <li data-lang="en">Zero installation, pure SaaS</li>
+          <li data-lang="tr">No CapEx, Yes OpEx only</li>
+          <li data-lang="en">No CapEx, Yes OpEx only</li>
+          <li data-lang="tr">Gerçek zamanlı veri ve analitik</li>
+          <li data-lang="en">Real-time data and analytics</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- VALUE PROPOSITION -->
+<section id="value" class="value-section">
+  <div class="container">
+    <div class="reveal">
+      <div class="section-tag" data-lang="tr">360° Değer Önerisi</div>
+      <div class="section-tag" data-lang="en">360° Value Proposition</div>
+      <h2 class="section-title" data-lang="tr">Herkes Kazanıyor</h2>
+      <h2 class="section-title" data-lang="en">Everyone Wins</h2>
+    </div>
+
+    <div class="value-tabs">
+      <button class="value-tab active" onclick="setTab('business')" id="tab-business">
+        <span data-lang-inline="tr">🏢 İşletme</span><span data-lang-inline="en">🏢 Business</span>
+      </button>
+      <button class="value-tab" onclick="setTab('consumer')" id="tab-consumer">
+        <span data-lang-inline="tr">👤 Tüketici</span><span data-lang-inline="en">👤 Consumer</span>
+      </button>
+      <button class="value-tab" onclick="setTab('bank')" id="tab-bank">
+        <span data-lang-inline="tr">🏦 Banka & Fintech</span><span data-lang-inline="en">🏦 Bank & Fintech</span>
+      </button>
+    </div>
+
+    <div class="value-panels reveal">
+      <div class="value-panel active" id="panel-business">
+        <div class="value-item"><div class="value-item-icon">💰</div><div class="value-item-title" data-lang="tr">Sıfır Kasa Maliyeti</div><div class="value-item-title" data-lang="en">Zero Cashier Cost</div><p class="value-item-desc" data-lang="tr">POS, kiosk ve kasa yatırımı olmadan operasyon yürütün.</p><p class="value-item-desc" data-lang="en">Operate without POS, kiosk, or cashier investment.</p></div>
+        <div class="value-item"><div class="value-item-icon">⚡</div><div class="value-item-title" data-lang="tr">Hızlı Operasyon</div><div class="value-item-title" data-lang="en">Fast Operations</div><p class="value-item-desc" data-lang="tr">Sipariş ve ödeme süreçleri otomatize, operasyon hızlanır.</p><p class="value-item-desc" data-lang="en">Automated ordering and payment, operations speed up.</p></div>
+        <div class="value-item"><div class="value-item-icon">📊</div><div class="value-item-title" data-lang="tr">Veri & Analitik</div><div class="value-item-title" data-lang="en">Data & Analytics</div><p class="value-item-desc" data-lang="tr">Gerçek zamanlı işletme performansı ve müşteri davranış verisi.</p><p class="value-item-desc" data-lang="en">Real-time business performance and customer behavior data.</p></div>
+        <div class="value-item"><div class="value-item-icon">🆓</div><div class="value-item-title" data-lang="tr">Ücretsiz Altyapı</div><div class="value-item-title" data-lang="en">Free Infrastructure</div><p class="value-item-desc" data-lang="tr">Tüm teknolojik altyapıya ücretsiz erişin. Sadece büyüyün.</p><p class="value-item-desc" data-lang="en">Access all tech infrastructure for free. Just grow.</p></div>
+        <div class="value-item"><div class="value-item-icon">🤝</div><div class="value-item-title" data-lang="tr">Organik Bağ</div><div class="value-item-title" data-lang="en">Organic Connection</div><p class="value-item-desc" data-lang="tr">Müşterilerinizle sadakat sistemi üzerinden organik bağ kurun.</p><p class="value-item-desc" data-lang="en">Build organic bonds with customers through loyalty systems.</p></div>
+        <div class="value-item"><div class="value-item-icon">📈</div><div class="value-item-title" data-lang="tr">Artan Verimlilik</div><div class="value-item-title" data-lang="en">Increased Efficiency</div><p class="value-item-desc" data-lang="tr">İşletme performansınız ve kârlılığınız artışa geçer.</p><p class="value-item-desc" data-lang="en">Business performance and profitability increase.</p></div>
+      </div>
+      <div class="value-panel" id="panel-consumer">
+        <div class="value-item"><div class="value-item-icon">⚡</div><div class="value-item-title" data-lang="tr">Sıfır Bekleme</div><div class="value-item-title" data-lang="en">Zero Wait</div><p class="value-item-desc" data-lang="tr">Kasada sıra yok, garson bekleme yok. Anında deneyim.</p><p class="value-item-desc" data-lang="en">No queue, no waiting for a waiter. Instant experience.</p></div>
+        <div class="value-item"><div class="value-item-icon">📱</div><div class="value-item-title" data-lang="tr">Tam Mobil</div><div class="value-item-title" data-lang="en">Fully Mobile</div><p class="value-item-desc" data-lang="tr">Akıllı telefonun ile tüm işlemler. Uygulama bile gerekmez.</p><p class="value-item-desc" data-lang="en">All transactions on your smartphone. No app needed.</p></div>
+        <div class="value-item"><div class="value-item-icon">🏆</div><div class="value-item-title" data-lang="tr">Puan & Sadakat</div><div class="value-item-title" data-lang="en">Points & Loyalty</div><p class="value-item-desc" data-lang="tr">Her işlemde puan kazan, ödüllerle harca.</p><p class="value-item-desc" data-lang="en">Earn points on every transaction, redeem rewards.</p></div>
+        <div class="value-item"><div class="value-item-icon">🔒</div><div class="value-item-title" data-lang="tr">Temassız & Güvenli</div><div class="value-item-title" data-lang="en">Contactless & Secure</div><p class="value-item-desc" data-lang="tr">NFC ile güvenli ve temassız ödeme deneyimi.</p><p class="value-item-desc" data-lang="en">Secure and contactless payment experience via NFC.</p></div>
+        <div class="value-item"><div class="value-item-icon">🌐</div><div class="value-item-title" data-lang="tr">Her Yerde</div><div class="value-item-title" data-lang="en">Everywhere</div><p class="value-item-desc" data-lang="tr">Restoran, otopark, EV şarj, hastane — her yerde çalışır.</p><p class="value-item-desc" data-lang="en">Restaurant, parking, EV charging, hospital — works everywhere.</p></div>
+        <div class="value-item"><div class="value-item-icon">✨</div><div class="value-item-title" data-lang="tr">Üstün Deneyim</div><div class="value-item-title" data-lang="en">Premium Experience</div><p class="value-item-desc" data-lang="tr">Dijital-first, kişiselleştirilmiş ve hızlı alışveriş deneyimi.</p><p class="value-item-desc" data-lang="en">Digital-first, personalized and fast shopping experience.</p></div>
+      </div>
+      <div class="value-panel" id="panel-bank">
+        <div class="value-item"><div class="value-item-icon">📈</div><div class="value-item-title" data-lang="tr">İşlem Hacmi Artışı</div><div class="value-item-title" data-lang="en">Transaction Volume Growth</div><p class="value-item-desc" data-lang="tr">Yeni ödeme noktaları ile toplam işlem hacmi büyür.</p><p class="value-item-desc" data-lang="en">Total transaction volume grows with new payment points.</p></div>
+        <div class="value-item"><div class="value-item-icon">🗺️</div><div class="value-item-title" data-lang="tr">Yeni Noktalar</div><div class="value-item-title" data-lang="en">New Access Points</div><p class="value-item-desc" data-lang="tr">Her sektörde genişleyen dijital ödeme ağı.</p><p class="value-item-desc" data-lang="en">Expanding digital payment network across every sector.</p></div>
+        <div class="value-item"><div class="value-item-icon">👥</div><div class="value-item-title" data-lang="tr">Dijital Müşteri</div><div class="value-item-title" data-lang="en">Digital Customer Acquisition</div><p class="value-item-desc" data-lang="tr">Her temas noktasında yeni dijital müşteri kazanımı.</p><p class="value-item-desc" data-lang="en">New digital customer acquisition at every touchpoint.</p></div>
+        <div class="value-item"><div class="value-item-icon">📊</div><div class="value-item-title" data-lang="tr">Davranışsal Veri</div><div class="value-item-title" data-lang="en">Behavioral Data</div><p class="value-item-desc" data-lang="tr">Zengin kullanıcı davranış ve harcama verisi.</p><p class="value-item-desc" data-lang="en">Rich user behavior and spending data.</p></div>
+        <div class="value-item"><div class="value-item-icon">💼</div><div class="value-item-title" data-lang="tr">No CapEx</div><div class="value-item-title" data-lang="en">No CapEx</div><p class="value-item-desc" data-lang="tr">Yalnızca operasyonel maliyet. Sermaye yatırımı yok.</p><p class="value-item-desc" data-lang="en">Operational costs only. No capital investment required.</p></div>
+        <div class="value-item"><div class="value-item-icon">🔗</div><div class="value-item-title" data-lang="tr">API Entegrasyon</div><div class="value-item-title" data-lang="en">API Integration</div><p class="value-item-desc" data-lang="tr">Mevcut ödeme altyapısıyla sorunsuz entegrasyon.</p><p class="value-item-desc" data-lang="en">Seamless integration with existing payment infrastructure.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SECTORS -->
+<section id="sectors" class="sectors-section">
+  <div class="container">
+    <div class="reveal">
+      <div class="section-tag" data-lang="tr">Ekosistem</div>
+      <div class="section-tag" data-lang="en">Ecosystem</div>
+      <h2 class="section-title" data-lang="tr">Her Sektöre Yayılan Platform</h2>
+      <h2 class="section-title" data-lang="en">Platform Spanning Every Sector</h2>
+      <p class="section-sub" data-lang="tr">Universal Commerce Access Point — tek bir altyapı, sınırsız kullanım alanı.</p>
+      <p class="section-sub" data-lang="en">Universal Commerce Access Point — one infrastructure, unlimited use cases.</p>
+    </div>
+    <div class="sectors-grid reveal" id="sectorsGrid"></div>
+  </div>
+</section>
+
+<!-- PLATFORM LAYERS -->
+<section id="platform" class="layers-section">
+  <div class="container">
+    <div class="reveal" style="text-align:center;">
+      <div class="section-tag" data-lang="tr">Mimari</div>
+      <div class="section-tag" data-lang="en">Architecture</div>
+      <h2 class="section-title" data-lang="tr">4 Katmanlı SaaS Altyapı</h2>
+      <h2 class="section-title" data-lang="en">4-Layer SaaS Infrastructure</h2>
+      <p class="section-sub" data-lang="tr" style="margin:0 auto;">Fiziksel ürün yok. Saf dijital altyapı.</p>
+      <p class="section-sub" data-lang="en" style="margin:0 auto;">No physical product. Pure digital infrastructure.</p>
+    </div>
+    <div class="layers-visual reveal">
+      <div class="layer-item">
+        <div class="layer-num">01</div>
+        <div class="layer-content">
+          <div class="layer-title">Digital Node Switch</div>
+          <p class="layer-desc" data-lang="tr">NFC + QR ile sisteme bağlanma noktası. Fiziksel temas, dijital başlangıç.</p>
+          <p class="layer-desc" data-lang="en">NFC + QR system connection point. Physical touch, digital start.</p>
+        </div>
+        <div class="layer-tag">NFC · QR</div>
+      </div>
+      <div class="layer-item">
+        <div class="layer-num">02</div>
+        <div class="layer-content">
+          <div class="layer-title">Commerce Engine</div>
+          <p class="layer-desc" data-lang="tr">Sipariş, ödeme, satış ve tahsilat ekranları. Tüm ticaret akışı burada.</p>
+          <p class="layer-desc" data-lang="en">Order, payment, sales and collection screens. All commerce flows here.</p>
+        </div>
+        <div class="layer-tag">Order · Pay</div>
+      </div>
+      <div class="layer-item">
+        <div class="layer-num">03</div>
+        <div class="layer-content">
+          <div class="layer-title">Merchant Cloud</div>
+          <p class="layer-desc" data-lang="tr">İşletme yönetim paneli, analitik, menü yönetimi ve entegrasyonlar.</p>
+          <p class="layer-desc" data-lang="en">Business management panel, analytics, menu management and integrations.</p>
+        </div>
+        <div class="layer-tag">Dashboard · API</div>
+      </div>
+      <div class="layer-item">
+        <div class="layer-num">04</div>
+        <div class="layer-content">
+          <div class="layer-title">Consumer Interaction</div>
+          <p class="layer-desc" data-lang="tr">Kullanıcı platformu. Akıllı telefon üzerinden tüm etkileşim.</p>
+          <p class="layer-desc" data-lang="en">User platform. All interaction via smartphone.</p>
+        </div>
+        <div class="layer-tag">Mobile · Loyalty</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA + DEMO FORM -->
+<section class="cta-section" id="demo-form">
+  <div class="container">
+    <div class="reveal">
+      <h2 class="cta-title" data-lang="tr">Geleceği bugün <span>deneyimleyin</span></h2>
+      <h2 class="cta-title" data-lang="en">Experience the future <span>today</span></h2>
+      <p class="cta-sub" data-lang="tr">DijiPOS ile işletmenizi bir sonraki seviyeye taşımak için hemen iletişime geçin.</p>
+      <p class="cta-sub" data-lang="en">Contact us now to take your business to the next level with DijiPOS.</p>
+
+      <div style="background:var(--card);border:1px solid var(--border);border-radius:24px;padding:48px;max-width:640px;margin:0 auto;text-align:left;">
+        <h3 style="font-family:'Syne',sans-serif;font-weight:700;font-size:1.4rem;margin-bottom:32px;" data-lang="tr">Demo & Teklif Talebi</h3>
+        <h3 style="font-family:'Syne',sans-serif;font-weight:700;font-size:1.4rem;margin-bottom:32px;" data-lang="en">Demo & Quote Request</h3>
+        <div style="display:grid;gap:16px;">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+            <input type="text" placeholder="Ad Soyad / Full Name" style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 16px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.875rem;outline:none;transition:border-color .2s;" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
+            <input type="text" placeholder="Şirket / Company" style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 16px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.875rem;outline:none;transition:border-color .2s;" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
+          </div>
+          <input type="email" placeholder="E-posta / Email" style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 16px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.875rem;outline:none;transition:border-color .2s;" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
+          <input type="tel" placeholder="Telefon / Phone" style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 16px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.875rem;outline:none;transition:border-color .2s;" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
+          <select style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 16px;color:var(--muted);font-family:'DM Sans',sans-serif;font-size:.875rem;outline:none;">
+            <option disabled selected>Sektör / Sector</option>
+            <option>🍔 Restoran & Kafe</option>
+            <option>🛒 Market & Retail</option>
+            <option>🚗 Otomotiv & EV</option>
+            <option>🏬 AVM</option>
+            <option>✈️ Havalimanı</option>
+            <option>🏥 Hastane</option>
+            <option>⛽ Benzinlik</option>
+            <option>🏨 Otel</option>
+            <option>💈 Berber & Servis</option>
+            <option>🎟 Etkinlik & Stadyum</option>
+            <option>Diğer / Other</option>
+          </select>
+          <button onclick="showSuccess()" style="background:linear-gradient(135deg,var(--accent),var(--accent2));color:#000;font-weight:700;padding:16px;border-radius:10px;border:none;cursor:pointer;font-size:1rem;font-family:'Syne',sans-serif;letter-spacing:.5px;transition:all .3s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
+            <span data-lang-inline="tr">🚀 Demo Talep Et</span><span data-lang-inline="en">🚀 Request Demo</span>
+          </button>
+          <div id="success-msg" style="display:none;text-align:center;color:var(--accent);font-weight:600;padding:12px;background:rgba(0,212,255,0.1);border-radius:10px;border:1px solid var(--border);">
+            ✅ <span data-lang-inline="tr">Talebiniz alındı! En kısa sürede sizinle iletişime geçeceğiz.</span>
+            <span data-lang-inline="en">Request received! We'll get in touch as soon as possible.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <span class="brand-logo">DijiPOS</span>
+      <p data-lang="tr">Fiziksel dünyayı dijital ticarete bağlayan yeni nesil Omni Channel ödeme altyapısı.</p>
+      <p data-lang="en">Next-generation Omni Channel payment infrastructure connecting the physical world to digital commerce.</p>
+      <div style="margin-top:20px;display:flex;gap:12px;">
+        <a href="https://www.dijitalsolutions.com" target="_blank" style="color:var(--accent);font-size:.8rem;text-decoration:none;">dijitalsolutions.com ↗</a>
+      </div>
+    </div>
+    <div class="footer-col">
+      <h4 data-lang="tr">Çözümler</h4>
+      <h4 data-lang="en">Solutions</h4>
+      <a href="#">Pay2Go</a>
+      <a href="#">Order2Go</a>
+      <a href="#">Charge2Go</a>
+      <a href="#">Connect2Go</a>
+    </div>
+    <div class="footer-col">
+      <h4 data-lang="tr">Sektörler</h4>
+      <h4 data-lang="en">Sectors</h4>
+      <a href="#" data-lang="tr">Restoran & Kafe</a>
+      <a href="#" data-lang="en">Restaurant & Cafe</a>
+      <a href="#" data-lang="tr">Market & Retail</a>
+      <a href="#" data-lang="en">Market & Retail</a>
+      <a href="#" data-lang="tr">Otomotiv & EV</a>
+      <a href="#" data-lang="en">Automotive & EV</a>
+      <a href="#" data-lang="tr">AVM & Havalimanı</a>
+      <a href="#" data-lang="en">Malls & Airports</a>
+    </div>
+    <div class="footer-col">
+      <h4 data-lang="tr">İletişim</h4>
+      <h4 data-lang="en">Contact</h4>
+      <a href="https://www.dijitalsolutions.com" target="_blank">www.dijitalsolutions.com</a>
+      <a href="mailto:ilkeratasoy@dijitalsolutions.com">ilkeratasoy@dijitalsolutions.com</a>
+      <a href="https://calendly.com/dijitalsolutions/dijital-meeting" target="_blank" data-lang="tr">Toplantı Planla ↗</a>
+      <a href="https://calendly.com/dijitalsolutions/dijital-meeting" target="_blank" data-lang="en">Schedule Meeting ↗</a>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span>© 2025 DijiPOS by Dijital Solutions. <span data-lang-inline="tr">Tüm hakları saklıdır.</span><span data-lang-inline="en">All rights reserved.</span></span>
+    <span style="color:var(--accent);font-size:.75rem;letter-spacing:2px;">JUST TAP. ORDER. PAY. GO.</span>
+  </div>
+</footer>
+
+<script>
+// CURSOR
+const cursor = document.getElementById('cursor');
+const ring = document.getElementById('cursorRing');
+let mouseX = 0, mouseY = 0, ringX = 0, ringY = 0;
+
+document.addEventListener('mousemove', e => {
+  mouseX = e.clientX; mouseY = e.clientY;
+  cursor.style.left = mouseX + 'px';
+  cursor.style.top = mouseY + 'px';
+});
+
+function animateRing() {
+  ringX += (mouseX - ringX) * 0.12;
+  ringY += (mouseY - ringY) * 0.12;
+  ring.style.left = ringX + 'px';
+  ring.style.top = ringY + 'px';
+  requestAnimationFrame(animateRing);
+}
+animateRing();
+
+// CANVAS BG
+const canvas = document.getElementById('bg-canvas');
+const ctx = canvas.getContext('2d');
+let W, H, particles = [];
+
+function resize() {
+  W = canvas.width = window.innerWidth;
+  H = canvas.height = window.innerHeight;
+}
+resize();
+window.addEventListener('resize', resize);
+
+for (let i = 0; i < 80; i++) {
+  particles.push({
+    x: Math.random() * 2000,
+    y: Math.random() * 1200,
+    vx: (Math.random() - 0.5) * 0.3,
+    vy: (Math.random() - 0.5) * 0.3,
+    r: Math.random() * 1.5 + 0.5,
+    o: Math.random() * 0.5 + 0.1
+  });
+}
+
+function drawCanvas() {
+  ctx.clearRect(0, 0, W, H);
+
+  // Grid
+  ctx.strokeStyle = 'rgba(0,102,255,0.04)';
+  ctx.lineWidth = 1;
+  const gridSize = 80;
+  for (let x = 0; x < W; x += gridSize) {
+    ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke();
+  }
+  for (let y = 0; y < H; y += gridSize) {
+    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
+  }
+
+  particles.forEach(p => {
+    p.x += p.vx; p.y += p.vy;
+    if (p.x < 0) p.x = W; if (p.x > W) p.x = 0;
+    if (p.y < 0) p.y = H; if (p.y > H) p.y = 0;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(0,212,255,${p.o})`;
+    ctx.fill();
+  });
+
+  // Connections
+  for (let i = 0; i < particles.length; i++) {
+    for (let j = i+1; j < particles.length; j++) {
+      const dx = particles[i].x - particles[j].x;
+      const dy = particles[i].y - particles[j].y;
+      const d = Math.sqrt(dx*dx + dy*dy);
+      if (d < 120) {
+        ctx.beginPath();
+        ctx.strokeStyle = `rgba(0,102,255,${0.08 * (1 - d/120)})`;
+        ctx.lineWidth = 0.5;
+        ctx.moveTo(particles[i].x, particles[i].y);
+        ctx.lineTo(particles[j].x, particles[j].y);
+        ctx.stroke();
+      }
+    }
+  }
+
+  requestAnimationFrame(drawCanvas);
+}
+drawCanvas();
+
+// SLIDER DATA
+const products = [
+  { icon: '💳', name: 'Pay2Go', desc: { tr: 'Temassız ödeme çözümü. NFC/QR ile anında ödeme.', en: 'Contactless payment solution. Instant payment via NFC/QR.' }, tag: 'Payment' },
+  { icon: '📋', name: 'Order2Go', desc: { tr: 'Dijital sipariş altyapısı. Masada, arabada, her yerde.', en: 'Digital order infrastructure. At the table, in the car, everywhere.' }, tag: 'Ordering' },
+  { icon: '⚡', name: 'Charge2Go', desc: { tr: 'EV şarj ödemesi. Dokun, şarj et, öde.', en: 'EV charging payment. Tap, charge, pay.' }, tag: 'EV Charging' },
+  { icon: '🔗', name: 'Connect2Go', desc: { tr: 'Dijital bağlantı noktası. Her sektör için entegrasyon.', en: 'Digital connection hub. Integration for every sector.' }, tag: 'Connectivity' },
+  { icon: '🏪', name: 'Self Checkout', desc: { tr: 'Market ve mağazalar için kasasız ödeme deneyimi.', en: 'Cashierless checkout experience for markets and stores.' }, tag: 'Retail' },
+  { icon: '🍽', name: 'Table Order', desc: { tr: 'Restoran masa siparişi. Garson çağırmaya gerek yok.', en: 'Restaurant table ordering. No need to call a waiter.' }, tag: 'Restaurant' },
+  { icon: '🅿', name: 'Smart Parking', desc: { tr: 'Otopark ödemesi. Bilet yok, gişe yok, kuyruğu yok.', en: 'Parking payment. No ticket, no booth, no queue.' }, tag: 'Parking' },
+  { icon: '🏦', name: 'Merchant Cloud', desc: { tr: 'İşletme paneli, analitik ve tam kontrol.', en: 'Business panel, analytics and full control.' }, tag: 'Management' },
+];
+
+const track = document.getElementById('sliderTrack');
+const lang = () => document.body.classList.contains('lang-en') ? 'en' : 'tr';
+const doubled = [...products, ...products];
+doubled.forEach(p => {
+  const card = document.createElement('div');
+  card.className = 'slider-card';
+  card.innerHTML = `<div class="slider-card-icon">${p.icon}</div><div class="slider-card-name">${p.name}</div><p class="slider-card-desc">${p.desc.tr}</p><p class="slider-card-desc" style="display:none">${p.desc.en}</p><span class="slider-card-tag">${p.tag}</span>`;
+  track.appendChild(card);
+});
+
+// SECTORS DATA
+const sectors = [
+  { icon:'🍔', name:{tr:'Restoran & Kafe',en:'Restaurant & Cafe'}, desc:{tr:'Masa siparişi, self order, ödeme, sadakat.',en:'Table order, self order, payment, loyalty.'} },
+  { icon:'🛒', name:{tr:'Market & Retail',en:'Market & Retail'}, desc:{tr:'Self checkout, kiosk yok, hızlı ödeme.',en:'Self checkout, no kiosk, fast payment.'} },
+  { icon:'🚗', name:{tr:'Otomotiv & EV',en:'Automotive & EV'}, desc:{tr:'Araç içi sipariş, EV şarj, park ödeme.',en:'In-car ordering, EV charging, parking payment.'} },
+  { icon:'🏬', name:{tr:'AVM',en:'Shopping Malls'}, desc:{tr:'Food court sipariş, mağaza ödeme, kampanya.',en:'Food court orders, store payment, campaigns.'} },
+  { icon:'✈️', name:{tr:'Havalimanı',en:'Airports'}, desc:{tr:'Hızlı ödeme, lounge siparişi, duty free.',en:'Fast payment, lounge ordering, duty free.'} },
+  { icon:'🏥', name:{tr:'Hastane',en:'Hospitals'}, desc:{tr:'Kantin, otopark, ziyaretçi servisleri.',en:'Canteen, parking, visitor services.'} },
+  { icon:'⛽', name:{tr:'Benzinlik',en:'Gas Station'}, desc:{tr:'Pompa üzeri node, kasa yok, temassız.',en:'Pump node, no cashier, contactless.'} },
+  { icon:'💈', name:{tr:'Berber & Servis',en:'Barber & Services'}, desc:{tr:'Randevu, ödeme, servis siparişi.',en:'Appointment, payment, service order.'} },
+  { icon:'🏨', name:{tr:'Otel',en:'Hotel'}, desc:{tr:'Oda servisi, sipariş, temassız ödeme.',en:'Room service, order, contactless payment.'} },
+  { icon:'🎟', name:{tr:'Etkinlik & Stadyum',en:'Events & Stadiums'}, desc:{tr:'Yiyecek siparişi, merchandise satın alma.',en:'Food orders, merchandise purchasing.'} },
+  { icon:'🚕', name:{tr:'Vale & Araç Servisi',en:'Valet & Car Service'}, desc:{tr:'Araç teslim, servis seç, öde.',en:'Vehicle handoff, select service, pay.'} },
+  { icon:'🏗', name:{tr:'Yeni Sektörler',en:'New Sectors'}, desc:{tr:'Sürekli büyüyen Universal Commerce ekosistemi.',en:'Constantly growing Universal Commerce ecosystem.'} },
+];
+
+const grid = document.getElementById('sectorsGrid');
+sectors.forEach(s => {
+  const card = document.createElement('div');
+  card.className = 'sector-card';
+  card.innerHTML = `<span class="sector-icon">${s.icon}</span><div class="sector-name">${s.name.tr}</div><div class="sector-name" style="display:none">${s.name.en}</div><p class="sector-desc">${s.desc.tr}</p><p class="sector-desc" style="display:none">${s.desc.en}</p>`;
+  grid.appendChild(card);
+});
+
+// LANGUAGE
+function setLang(l) {
+  if (l === 'en') {
+    document.body.classList.add('lang-en');
+    document.getElementById('btnTr').classList.remove('active');
+    document.getElementById('btnEn').classList.add('active');
+    // Slider
+    document.querySelectorAll('.slider-card .slider-card-desc').forEach((el, i) => {
+      el.style.display = i % 2 === 1 ? 'block' : 'none';
+    });
+    // Sectors
+    document.querySelectorAll('.sector-card .sector-name').forEach((el, i) => {
+      el.style.display = i % 2 === 1 ? 'block' : 'none';
+    });
+    document.querySelectorAll('.sector-card .sector-desc').forEach((el, i) => {
+      el.style.display = i % 2 === 1 ? 'block' : 'none';
+    });
+  } else {
+    document.body.classList.remove('lang-en');
+    document.getElementById('btnEn').classList.remove('active');
+    document.getElementById('btnTr').classList.add('active');
+    document.querySelectorAll('.slider-card .slider-card-desc').forEach((el, i) => {
+      el.style.display = i % 2 === 0 ? 'block' : 'none';
+    });
+    document.querySelectorAll('.sector-card .sector-name').forEach((el, i) => {
+      el.style.display = i % 2 === 0 ? 'block' : 'none';
+    });
+    document.querySelectorAll('.sector-card .sector-desc').forEach((el, i) => {
+      el.style.display = i % 2 === 0 ? 'block' : 'none';
+    });
+  }
+}
+
+// TABS
+function setTab(t) {
+  document.querySelectorAll('.value-tab').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.value-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('tab-' + t).classList.add('active');
+  document.getElementById('panel-' + t).classList.add('active');
+}
+
+// SCROLL REVEAL
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+}, { threshold: 0.1 });
+document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+// SUCCESS
+function showSuccess() {
+  document.getElementById('success-msg').style.display = 'block';
+}
+</script>
+</body>
+</html>
