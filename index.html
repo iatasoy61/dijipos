@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PAYLAYER — Future of Payment</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --white:#ffffff;--pearl:#f7f5f2;--fog:#edeae6;--smoke:#ddd9d3;
+  --ink:#1a1814;--ink2:#3d3a35;--ink3:#7a756e;
+  --accent:#1a56db;--accent2:#0ea5e9;--gold:#b8860b;--green:#059669;
+  --shadow:rgba(26,24,20,0.07);--shadow2:rgba(26,24,20,0.13);
+  --glass:rgba(255,255,255,0.75);--border:rgba(26,24,20,0.08);
+  --fd:'Playfair Display',serif;--fb:'Outfit',sans-serif;
+}
+html{scroll-behavior:auto;}
+body{background:var(--pearl);color:var(--ink);font-family:var(--fb);overflow-x:hidden;cursor:none;}
+
+/* CURSOR */
+#cur{position:fixed;width:8px;height:8px;background:var(--ink);border-radius:50%;pointer-events:none;z-index:9999;transform:translate(-50%,-50%);}
+#cur-r{position:fixed;width:34px;height:34px;border:1.5px solid rgba(26,24,20,0.2);border-radius:50%;pointer-events:none;z-index:9998;transform:translate(-50%,-50%);transition:width .3s,height .3s;}
+
+/* PROGRESS */
+#prog{position:fixed;top:0;left:0;height:2px;background:linear-gradient(90deg,var(--accent),var(--accent2));z-index:1000;box-shadow:0 0 8px rgba(26,86,219,.3);}
+
+/* NAV */
+#nav{position:fixed;top:0;left:0;right:0;z-index:500;padding:16px 48px;display:flex;align-items:center;justify-content:space-between;background:rgba(247,245,242,.88);backdrop-filter:blur(20px) saturate(180%);-webkit-backdrop-filter:blur(20px) saturate(180%);border-bottom:1px solid var(--border);}
+.nav-logo{font-family:var(--fd);font-size:20px;font-weight:700;letter-spacing:-.5px;}
+.nav-logo span{color:var(--accent);}
+.nav-links{display:flex;gap:28px;}
+.nav-link{font-size:13px;font-weight:500;color:var(--ink3);cursor:pointer;transition:color .2s;}
+.nav-link:hover{color:var(--ink);}
+.nav-cta{background:var(--ink);color:#fff;padding:9px 22px;border-radius:100px;font-size:13px;font-weight:500;cursor:pointer;transition:all .2s;}
+.nav-cta:hover{background:var(--accent);}
+
+/* SIDE DOTS */
+#sdots{position:fixed;right:24px;top:50%;transform:translateY(-50%);z-index:400;display:flex;flex-direction:column;gap:10px;}
+.sd{width:5px;height:5px;border-radius:50%;background:var(--smoke);transition:all .3s;cursor:pointer;}
+.sd.on{background:var(--accent);height:18px;border-radius:3px;box-shadow:0 0 8px rgba(26,86,219,.35);}
+
+/* SCENE */
+.scene{position:relative;overflow:hidden;}
+.con{max-width:1140px;margin:0 auto;padding:0 48px;}
+
+/* MESH */
+.blob{position:absolute;border-radius:50%;filter:blur(90px);opacity:.3;pointer-events:none;}
+
+/* SECTION HEADER */
+.stag{display:inline-block;font-size:11px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--accent);background:rgba(26,86,219,.08);border-radius:100px;padding:5px 14px;margin-bottom:18px;}
+.sh2{font-family:var(--fd);font-size:clamp(34px,5.5vw,58px);font-weight:700;line-height:1.05;letter-spacing:-1.5px;}
+.sh2 em{font-style:normal;color:var(--accent);}
+.sbody{font-size:16px;font-weight:300;color:var(--ink3);line-height:1.75;max-width:460px;margin-top:14px;}
+
+/* TWO COL */
+.twocol{display:flex;gap:72px;align-items:center;flex-wrap:wrap;}
+.col-t{flex:1;min-width:260px;}
+.col-v{flex:1;min-width:300px;display:flex;justify-content:center;}
+
+/* BLINK */
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* ============ HERO ============ */
+#s-hero{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding-top:80px;}
+.hero-tag{display:inline-flex;align-items:center;gap:8px;background:var(--glass);backdrop-filter:blur(12px);border:1px solid var(--border);border-radius:100px;padding:6px 16px 6px 10px;font-size:12px;font-weight:500;color:var(--ink2);margin-bottom:28px;}
+.gtd{width:6px;height:6px;background:var(--green);border-radius:50%;animation:blink 2s ease infinite;}
+.h1{font-family:var(--fd);font-size:clamp(52px,8.5vw,108px);font-weight:900;line-height:.95;letter-spacing:-3px;color:var(--ink);max-width:860px;}
+.h1 em{font-style:normal;color:var(--accent);}
+.hsub{margin-top:24px;font-size:17px;font-weight:300;color:var(--ink3);line-height:1.7;max-width:500px;}
+.hbtns{display:flex;gap:12px;margin-top:36px;justify-content:center;flex-wrap:wrap;}
+.bp{background:var(--ink);color:#fff;padding:13px 30px;border-radius:100px;font-size:14px;font-weight:500;cursor:pointer;transition:all .25s;box-shadow:0 2px 20px var(--shadow2);}
+.bp:hover{background:var(--accent);transform:translateY(-2px);box-shadow:0 8px 28px rgba(26,86,219,.3);}
+.bg{background:var(--glass);backdrop-filter:blur(12px);border:1px solid var(--border);color:var(--ink);padding:13px 30px;border-radius:100px;font-size:14px;font-weight:500;cursor:pointer;transition:all .25s;}
+.bg:hover{background:#fff;transform:translateY(-2px);box-shadow:0 8px 24px var(--shadow);}
+.hcards{display:flex;gap:14px;margin-top:60px;justify-content:center;flex-wrap:wrap;}
+.hcard{background:var(--glass);backdrop-filter:blur(20px) saturate(160%);border:1px solid rgba(255,255,255,.92);border-radius:20px;padding:20px 24px;min-width:170px;text-align:left;box-shadow:0 4px 28px var(--shadow),0 1px 0 #fff inset;opacity:0;transform:translateY(28px);transition:all .5s cubic-bezier(.23,1,.32,1);}
+.hcard.on{opacity:1;transform:translateY(0);}
+.hcard:hover{transform:translateY(-4px);box-shadow:0 12px 40px var(--shadow2);}
+.hci{font-size:20px;margin-bottom:10px;}
+.hcv{font-family:var(--fd);font-size:28px;font-weight:700;letter-spacing:-1px;}
+.hcl{font-size:11px;font-weight:500;color:var(--ink3);letter-spacing:.5px;text-transform:uppercase;margin-top:4px;}
+.scroll-h{position:absolute;bottom:36px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:7px;color:var(--ink3);animation:flt 2.5s ease infinite;}
+.scroll-h span{font-size:10px;font-weight:500;letter-spacing:3px;text-transform:uppercase;}
+@keyframes flt{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(6px)}}
+
+/* DIVIDER */
+.div{height:1px;background:var(--fog);}
+
+/* ============ SCENE 0: TABLE ============ */
+#s-table{padding:110px 0;background:var(--white);}
+.pad-wrap{position:relative;width:280px;height:380px;perspective:1200px;}
+.plc{position:absolute;left:50%;width:250px;transform:translateX(-50%);border-radius:22px;padding:20px 22px;display:flex;align-items:center;gap:14px;background:var(--glass);backdrop-filter:blur(22px) saturate(180%);border:1px solid rgba(255,255,255,.95);box-shadow:0 4px 28px var(--shadow),0 1px 0 #fff inset;opacity:0;transition:all .65s cubic-bezier(.23,1,.32,1);}
+.plc.on{opacity:1;}
+.plc:hover{transform:translateX(-50%) translateX(4px)!important;box-shadow:0 8px 36px var(--shadow2);}
+.pli{font-size:26px;flex-shrink:0;}
+.plt{font-size:13px;font-weight:600;color:var(--ink);}
+.pld{font-size:11px;color:var(--ink3);margin-top:3px;line-height:1.5;}
+.plb{position:absolute;right:-52px;top:50%;transform:translateY(-50%);background:var(--white);border:1px solid var(--border);border-radius:100px;padding:4px 10px;font-size:10px;font-weight:600;color:var(--accent);letter-spacing:.5px;white-space:nowrap;opacity:0;transition:opacity .4s .5s;box-shadow:0 2px 8px var(--shadow);}
+.plb.on{opacity:1;}
+.plb::before{content:'';position:absolute;right:100%;top:50%;transform:translateY(-50%);width:28px;height:1px;background:linear-gradient(to right,transparent,var(--smoke));}
+
+/* ============ SCENE 1: HARDWARE ============ */
+#s-hw{padding:110px 0;background:var(--pearl);}
+.hw-g{display:flex;gap:18px;margin:44px 0 36px;flex-wrap:wrap;}
+.hwc{flex:1;min-width:150px;background:var(--white);border:1px solid var(--fog);border-radius:18px;padding:28px 18px;text-align:center;transition:all .55s cubic-bezier(.23,1,.32,1);}
+.hwc.diss{opacity:0;transform:scale(.65) translateY(20px);filter:blur(10px);}
+.hwi{font-size:38px;margin-bottom:14px;}
+.hwn{font-size:11px;font-weight:600;color:var(--ink3);letter-spacing:1px;text-transform:uppercase;}
+.rb{background:var(--white);border:1.5px solid rgba(26,86,219,.13);border-radius:20px;padding:30px 36px;box-shadow:0 4px 36px rgba(26,86,219,.06);opacity:0;transform:translateY(18px);transition:all .6s .3s cubic-bezier(.23,1,.32,1);}
+.rb.on{opacity:1;transform:translateY(0);}
+.rbm{font-family:var(--fd);font-size:clamp(20px,3vw,28px);font-weight:700;color:var(--ink);line-height:1.35;}
+.rbm span{color:var(--accent);}
+.rbs{font-size:14px;color:var(--ink3);margin-top:8px;font-weight:300;}
+.rbicons{display:flex;gap:14px;margin-top:18px;align-items:center;}
+.rbw{display:flex;flex-direction:column;align-items:center;gap:6px;}
+.rbico{font-size:34px;filter:drop-shadow(0 3px 10px rgba(26,86,219,.18));}
+.rbicl{font-size:10px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--accent);}
+.rbp{font-size:20px;color:var(--smoke);}
+
+/* ============ SCENE 2: TECH LAYERS ============ */
+#s-tech{padding:110px 0;background:var(--white);}
+.trows{display:flex;flex-direction:column;gap:11px;margin-top:44px;}
+.trow{display:flex;align-items:center;gap:18px;background:var(--glass);backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,.9);border-radius:16px;padding:20px 24px;box-shadow:0 2px 16px var(--shadow);opacity:0;transform:translateX(-22px);transition:all .5s cubic-bezier(.23,1,.32,1);cursor:default;}
+.trow:hover{transform:translateX(4px);box-shadow:0 6px 28px var(--shadow2);background:#fff;}
+.trow.on{opacity:1;transform:translateX(0);}
+.trn{font-family:var(--fd);font-size:26px;font-weight:900;color:var(--fog);width:36px;flex-shrink:0;}
+.tri{font-size:22px;flex-shrink:0;}
+.trt{font-size:14px;font-weight:600;color:var(--ink);}
+.trd{font-size:12px;color:var(--ink3);margin-top:3px;line-height:1.6;flex:1;}
+.trb{padding:5px 12px;border-radius:100px;font-size:11px;font-weight:600;white-space:nowrap;}
+.trb-b{background:rgba(26,86,219,.09);color:var(--accent);}
+.trb-s{background:rgba(14,165,233,.09);color:var(--accent2);}
+.trb-g{background:rgba(5,150,105,.09);color:var(--green);}
+.trb-o{background:rgba(184,134,11,.09);color:var(--gold);}
+
+/* ============ SCENE 3: NETWORK ============ */
+#s-net{padding:110px 0;background:linear-gradient(160deg,#f0f7ff 0%,#f7f5f2 60%,#fff9f0 100%);}
+.nwrap{position:relative;height:400px;margin-top:48px;}
+#nsvg{position:absolute;inset:0;width:100%;height:100%;}
+.npill{position:absolute;display:flex;align-items:center;gap:10px;background:var(--glass);backdrop-filter:blur(20px) saturate(160%);border:1px solid rgba(255,255,255,.95);border-radius:100px;padding:11px 18px 11px 13px;box-shadow:0 4px 22px var(--shadow),0 1px 0 #fff inset;opacity:0;transform:scale(.88);transition:all .5s cubic-bezier(.23,1,.32,1);}
+.npill:hover{transform:scale(1.04);box-shadow:0 8px 30px var(--shadow2);}
+.npill.on{opacity:1;transform:scale(1);}
+.npi{font-size:20px;}
+.npt{font-size:13px;font-weight:600;color:var(--ink);}
+.nps{font-size:11px;color:var(--ink3);}
+#np0{top:40%;left:38%;}#np1{top:5%;left:60%;}#np2{top:72%;left:63%;}
+#np3{top:8%;left:10%;}#np4{top:74%;left:8%;}#np5{top:40%;left:76%;}
+.novt{margin-top:38px;background:var(--white);border:1px solid var(--fog);border-radius:16px;padding:22px 30px;font-family:var(--fd);font-size:clamp(16px,2.5vw,22px);font-weight:700;color:var(--ink);text-align:center;line-height:1.4;box-shadow:0 2px 18px var(--shadow);opacity:0;transform:translateY(14px);transition:all .6s .3s;}
+.novt.on{opacity:1;transform:translateY(0);}
+.novt em{font-style:normal;color:var(--accent);}
+
+/* ============ SCENE 4: BANKS ============ */
+#s-banks{padding:110px 0;background:var(--white);}
+.dgrid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:44px;}
+.dcard{background:var(--glass);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.9);border-radius:20px;padding:26px 26px 22px;box-shadow:0 4px 22px var(--shadow),0 1px 0 #fff inset;opacity:0;transform:translateY(22px);transition:all .5s cubic-bezier(.23,1,.32,1);}
+.dcard:hover{transform:translateY(-3px);box-shadow:0 12px 38px var(--shadow2);}
+.dcard.on{opacity:1;transform:translateY(0);}
+.dcl{font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--ink3);margin-bottom:10px;}
+.dcv{font-family:var(--fd);font-size:36px;font-weight:700;letter-spacing:-1.5px;line-height:1;}
+.dcv.blue{color:var(--accent);}
+.dcv.green{color:var(--green);}
+.dcv.gold{color:var(--gold);}
+.dcbar{height:3px;background:var(--fog);border-radius:2px;margin-top:18px;overflow:hidden;}
+.dcfill{height:100%;width:0%;border-radius:2px;transition:width 1.5s cubic-bezier(.23,1,.32,1) .2s;}
+.fb{background:linear-gradient(90deg,var(--accent),var(--accent2));}
+.fg{background:linear-gradient(90deg,var(--green),#34d399);}
+.fs{background:linear-gradient(90deg,var(--accent2),var(--accent));}
+.fo{background:linear-gradient(90deg,var(--gold),#fbbf24);}
+
+/* ============ SCENE 5: INDUSTRY ============ */
+#s-ind{padding:110px 0;background:var(--pearl);}
+.igrid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:44px;}
+.icard{background:var(--white);border:1px solid var(--fog);border-radius:20px;padding:30px 20px;text-align:center;position:relative;overflow:hidden;opacity:0;transform:translateY(26px) scale(.96);transition:all .5s cubic-bezier(.23,1,.32,1);}
+.icard::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;opacity:0;transition:opacity .3s;}
+.icard:nth-child(1)::before{background:linear-gradient(90deg,var(--accent),var(--accent2));}
+.icard:nth-child(2)::before{background:linear-gradient(90deg,var(--green),#34d399);}
+.icard:nth-child(3)::before{background:linear-gradient(90deg,var(--gold),#fbbf24);}
+.icard:nth-child(4)::before{background:linear-gradient(90deg,var(--accent2),var(--accent));}
+.icard:nth-child(5)::before{background:linear-gradient(90deg,#8b5cf6,var(--accent));}
+.icard:nth-child(6)::before{background:linear-gradient(90deg,var(--green),var(--accent2));}
+.icard:hover{transform:translateY(-4px);box-shadow:0 12px 32px var(--shadow2);}
+.icard:hover::before{opacity:1;}
+.icard.on{opacity:1;transform:translateY(0) scale(1);}
+.icico{font-size:38px;margin-bottom:14px;}
+.icn{font-size:12px;font-weight:600;color:var(--ink);text-transform:uppercase;letter-spacing:1px;}
+.icst{margin-top:10px;display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:500;color:var(--green);background:rgba(5,150,105,.08);padding:4px 10px;border-radius:100px;}
+.icd{width:5px;height:5px;background:var(--green);border-radius:50%;animation:blink 2s ease infinite;}
+.ibnr{margin-top:36px;background:var(--ink);color:#fff;border-radius:20px;padding:30px 36px;display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap;opacity:0;transform:translateY(18px);transition:all .6s .3s;}
+.ibnr.on{opacity:1;transform:translateY(0);}
+.ibnt{font-family:var(--fd);font-size:clamp(18px,2.5vw,24px);font-weight:700;}
+.ibnt em{font-style:normal;color:var(--accent2);}
+.ibns{font-size:13px;color:rgba(255,255,255,.45);margin-top:5px;}
+.ibnb{background:#fff;color:var(--ink);padding:11px 26px;border-radius:100px;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;white-space:nowrap;}
+.ibnb:hover{background:var(--accent);color:#fff;}
+
+/* ============ SCENE 6: FINAL ============ */
+#s-final{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:110px 48px;background:linear-gradient(180deg,#fff 0%,#f0f7ff 50%,#f7f5f2 100%);overflow:hidden;}
+.fphone{width:78px;height:144px;border-radius:24px;background:var(--ink);border:5px solid #fff;box-shadow:0 8px 44px rgba(26,24,20,.2),0 2px 0 #fff inset;display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 52px;animation:pflt 5s ease-in-out infinite;position:relative;}
+.fphone::after{content:'';position:absolute;bottom:-22px;width:48px;height:11px;background:radial-gradient(ellipse,rgba(26,24,20,.1),transparent);border-radius:50%;animation:pshdw 5s ease-in-out infinite;}
+@keyframes pflt{0%,100%{transform:translateY(0) rotate(-1deg)}50%{transform:translateY(-16px) rotate(1deg)}}
+@keyframes pshdw{0%,100%{transform:scaleX(1);opacity:.5}50%{transform:scaleX(.6);opacity:.2}}
+.flines{display:flex;flex-direction:column;align-items:center;gap:5px;margin-bottom:52px;}
+.fl{font-family:var(--fd);font-size:clamp(26px,4.8vw,56px);font-weight:900;line-height:1;letter-spacing:-1.5px;color:var(--ink);opacity:0;transform:translateY(26px);transition:all .5s cubic-bezier(.23,1,.32,1);}
+.fl.on{opacity:1;transform:translateY(0);}
+.fl.st{color:var(--smoke);position:relative;}
+.fl.st::after{content:'';position:absolute;left:0;right:0;top:50%;height:2px;background:var(--smoke);transform:scaleX(0);transform-origin:left;transition:transform .4s .6s ease;}
+.fl.st.on::after{transform:scaleX(1);}
+.fl.br{color:var(--accent);}
+.fl.sep{width:36px;height:2px;background:var(--fog);border-radius:2px;font-size:0;margin:10px 0;}
+.facts{display:flex;justify-content:center;gap:22px;flex-wrap:wrap;}
+.fac{display:flex;flex-direction:column;align-items:center;gap:9px;opacity:0;transform:translateY(18px);transition:all .45s cubic-bezier(.23,1,.32,1);}
+.fac.on{opacity:1;transform:translateY(0);}
+.facc{width:56px;height:56px;border-radius:50%;background:var(--glass);backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,.95);box-shadow:0 4px 18px var(--shadow);display:flex;align-items:center;justify-content:center;font-size:21px;transition:all .3s;}
+.fac:hover .facc{transform:translateY(-4px);box-shadow:0 8px 26px var(--shadow2);}
+.facn{font-size:10px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:var(--ink3);}
+.ffoot{margin-top:60px;text-align:center;}
+.fflogo{font-family:var(--fd);font-size:18px;font-weight:700;}
+.fflogo span{color:var(--accent);}
+.fftag{font-size:12px;color:var(--ink3);margin-top:5px;letter-spacing:.5px;}
+
+@media(max-width:768px){
+  .con{padding:0 24px;}
+  #nav{padding:14px 20px;}
+  .nav-links,.nav-cta,#sdots{display:none;}
+  .twocol{gap:44px;}
+  .dgrid{grid-template-columns:1fr;}
+  .igrid{grid-template-columns:1fr 1fr;}
+}
+</style>
+</head>
+<body>
+
+<div id="cur"></div><div id="cur-r"></div><div id="prog"></div>
+
+<nav id="nav">
+  <div class="nav-logo">Pay<span>Layer</span></div>
+  <div class="nav-links">
+    <span class="nav-link">Platform</span>
+    <span class="nav-link">Solutions</span>
+    <span class="nav-link">Banks</span>
+    <span class="nav-link">Industries</span>
+  </div>
+  <div class="nav-cta">Get Started</div>
+</nav>
+
+<div id="sdots"></div>
+
+<!-- HERO -->
+<section class="scene" id="s-hero">
+  <div class="blob" style="width:600px;height:600px;background:radial-gradient(#dbeafe,transparent);top:-120px;left:-160px;"></div>
+  <div class="blob" style="width:450px;height:450px;background:radial-gradient(#fef3c7,transparent);bottom:-60px;right:-80px;"></div>
+  <div class="con" style="position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;padding-top:80px;text-align:center;">
+    <div class="hero-tag" id="htag"><div class="gtd"></div>SaaS Payment Platform · Dijital Solutions</div>
+    <h1 class="h1" id="hh1">The Restaurant<br>That Runs on<br><em>Software Alone</em></h1>
+    <p class="hsub" id="hsub">No cashier. No kiosk. No POS machine. Just a wireless pad, your phone, and our platform — doing everything.</p>
+    <div class="hbtns" id="hbtns"><div class="bp">See the Platform</div><div class="bg">Watch Demo ↗</div></div>
+    <div class="hcards" id="hcards">
+      <div class="hcard" style="transition-delay:.1s"><div class="hci">🍽️</div><div class="hcv" id="hcv1">0</div><div class="hcl">Restaurants Live</div></div>
+      <div class="hcard" style="transition-delay:.22s"><div class="hci">💳</div><div class="hcv" id="hcv2">₺0</div><div class="hcl">Monthly Volume</div></div>
+      <div class="hcard" style="transition-delay:.36s"><div class="hci">⚡</div><div class="hcv">120ms</div><div class="hcl">Settlement Speed</div></div>
+      <div class="hcard" style="transition-delay:.5s"><div class="hci">📉</div><div class="hcv">64%</div><div class="hcl">Cost Reduction</div></div>
+    </div>
+  </div>
+  <div class="scroll-h"><span>Scroll</span><svg width="14" height="20" viewBox="0 0 14 20" fill="none"><rect x="5" y="0" width="4" height="6" rx="2" fill="currentColor" opacity=".35"/><path d="M0 13L7 20L14 13" stroke="currentColor" stroke-width="1.5" fill="none"/></svg></div>
+</section>
+<div class="div"></div>
+
+<!-- SCENE 0: TABLE -->
+<section class="scene" id="s-table" style="padding:110px 0;background:var(--white);">
+  <div class="blob" style="width:500px;height:500px;background:radial-gradient(#e0f2fe,transparent);top:-80px;right:-80px;opacity:.25;"></div>
+  <div class="con">
+    <div class="twocol">
+      <div class="col-t">
+        <div class="stag">Scene 01 — The Table</div>
+        <h2 class="sh2">A pad. A phone.<br><em>A complete system.</em></h2>
+        <p class="sbody">The customer sits down. Places their phone on the table's wireless charging pad. In that instant, the entire payment, loyalty, and ordering ecosystem activates — invisibly.</p>
+      </div>
+      <div class="col-v">
+        <div class="pad-wrap" id="pw">
+          <div class="plc" id="p0" style="top:295px"><div class="pli">📶</div><div><div class="plt">Base Charging Pad</div><div class="pld">Physical surface with embedded NFC antenna</div></div><div class="plb" id="pb0">Hardware</div></div>
+          <div class="plc" id="p1" style="top:200px"><div class="pli">📡</div><div><div class="plt">NFC Module</div><div class="pld">Tap to authenticate — zero friction</div></div><div class="plb" id="pb1">Protocol</div></div>
+          <div class="plc" id="p2" style="top:105px"><div class="pli">☁️</div><div><div class="plt">SaaS Platform</div><div class="pld">Loyalty · Offers · Analytics · Payments</div></div><div class="plb" id="pb2">Software</div></div>
+          <div class="plc" id="p3" style="top:10px"><div class="pli">📱</div><div><div class="plt">Customer Phone</div><div class="pld">Full terminal, menu & loyalty in one</div></div><div class="plb" id="pb3">Interface</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<div class="div"></div>
+
+<!-- SCENE 1: HARDWARE -->
+<section class="scene" id="s-hw" style="padding:110px 0;background:var(--pearl);">
+  <div class="blob" style="width:450px;height:450px;background:radial-gradient(#fef9c3,transparent);bottom:-60px;left:-60px;opacity:.25;"></div>
+  <div class="con">
+    <div class="stag">Scene 02 — Hardware Removal</div>
+    <h2 class="sh2">Three machines.<br><em>All eliminated.</em></h2>
+    <p class="sbody">Traditional payment infrastructure is expensive, fragile, and unnecessary. Our platform dissolves all of it.</p>
+    <div class="hw-g" id="hwg">
+      <div class="hwc" id="hw0"><div class="hwi">👨‍💼</div><div class="hwn">Cashier</div></div>
+      <div class="hwc" id="hw1"><div class="hwi">🖥️</div><div class="hwn">Self-Service Kiosk</div></div>
+      <div class="hwc" id="hw2"><div class="hwi">💳</div><div class="hwn">POS Machine</div></div>
+    </div>
+    <div class="rb" id="rb">
+      <div class="rbm">No cashier. No kiosk. No POS.<br><span>Just your phone</span> and <span>our platform.</span></div>
+      <div class="rbs">Every transaction flows through software — faster, cheaper, smarter.</div>
+      <div class="rbicons">
+        <div class="rbw"><div class="rbico">📱</div><div class="rbicl">Phone</div></div>
+        <div class="rbp">+</div>
+        <div class="rbw"><div class="rbico">📶</div><div class="rbicl">Pad</div></div>
+        <div class="rbp">=</div>
+        <div class="rbw"><div class="rbico">✅</div><div class="rbicl">Everything</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+<div class="div"></div>
+
+<!-- SCENE 2: TECH -->
+<section class="scene" id="s-tech" style="padding:110px 0;background:var(--white);">
+  <div class="blob" style="width:450px;height:450px;background:radial-gradient(#dcfce7,transparent);top:0;right:0;opacity:.25;"></div>
+  <div class="con">
+    <div class="twocol">
+      <div class="col-t" style="max-width:360px;">
+        <div class="stag">Scene 03 — Technology</div>
+        <h2 class="sh2">Four layers.<br><em>One platform.</em></h2>
+        <p class="sbody">Each layer is purpose-built, deeply integrated, and cloud-native — working as one seamless system.</p>
+      </div>
+      <div class="col-v" style="flex:1.4;">
+        <div class="trows" id="trows" style="width:100%;">
+          <div class="trow" id="tr0"><div class="trn">01</div><div class="tri">📡</div><div class="trd"><div class="trt">NFC — Tap to Pay</div><div>Near-field communication triggers instant, secure authentication with zero friction. No app download required.</div></div><div class="trb trb-b">Payment</div></div>
+          <div class="trow" id="tr1"><div class="trn">02</div><div class="tri">🎁</div><div class="trd"><div class="trt">Software — Loyalty & Offers</div><div>Dynamic loyalty programs, personalized offers, and real-time engagement managed from one dashboard.</div></div><div class="trb trb-s">Engagement</div></div>
+          <div class="trow" id="tr2"><div class="trn">03</div><div class="tri">☁️</div><div class="trd"><div class="trt">SaaS — Cloud Native</div><div>Infinitely scalable. Accessible from anywhere. Zero device logistics. Zero maintenance overhead.</div></div><div class="trb trb-g">SaaS</div></div>
+          <div class="trow" id="tr3"><div class="trn">04</div><div class="tri">📱</div><div class="trd"><div class="trt">Phone — Full Terminal</div><div>Every customer's smartphone becomes a payment terminal, loyalty card, digital menu, and ordering interface.</div></div><div class="trb trb-o">Interface</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<div class="div"></div>
+
+<!-- SCENE 3: NETWORK -->
+<section class="scene" id="s-net" style="padding:110px 0;background:linear-gradient(160deg,#f0f7ff 0%,#f7f5f2 60%,#fff9f0 100%);">
+  <div class="con">
+    <div style="text-align:center;max-width:540px;margin:0 auto;">
+      <div class="stag">Scene 04 — Network</div>
+      <h2 class="sh2">One grid.<br><em>Every participant.</em></h2>
+      <p class="sbody" style="margin:14px auto 0;">Restaurants, customers, banks, and operations — all connected in a single real-time transaction mesh.</p>
+    </div>
+    <div class="nwrap">
+      <svg id="nsvg" viewBox="0 0 1000 400" preserveAspectRatio="xMidYMid meet"></svg>
+      <div class="npill" id="np0"><div class="npi">🏗️</div><div><div class="npt">PayLayer Platform</div><div class="nps">Central Hub</div></div></div>
+      <div class="npill" id="np1"><div class="npi">👤</div><div><div class="npt">Customer</div><div class="nps">Phone · NFC</div></div></div>
+      <div class="npill" id="np2"><div class="npi">👥</div><div><div class="npt">Customer Group</div><div class="nps">Loyalty · Offers</div></div></div>
+      <div class="npill" id="np3"><div class="npi">🏦</div><div><div class="npt">Partner Bank</div><div class="nps">Real-time Settlement</div></div></div>
+      <div class="npill" id="np4"><div class="npi">🍽️</div><div><div class="npt">Restaurant Chain</div><div class="nps">Multi-branch</div></div></div>
+      <div class="npill" id="np5"><div class="npi">⚙️</div><div><div class="npt">Operations</div><div class="nps">Analytics · Control</div></div></div>
+    </div>
+    <div class="novt" id="novt"><em>Everywhere Nodes</em> — Connecting businesses, customers &amp; banks seamlessly</div>
+  </div>
+</section>
+<div class="div"></div>
+
+<!-- SCENE 4: BANKS -->
+<section class="scene" id="s-banks" style="padding:110px 0;background:var(--white);">
+  <div class="blob" style="width:380px;height:380px;background:radial-gradient(#fef9c3,transparent);top:-40px;left:-40px;opacity:.25;"></div>
+  <div class="con">
+    <div class="twocol">
+      <div class="col-t">
+        <div class="stag">Scene 05 — Banks</div>
+        <h2 class="sh2">Banks win<br><em>the most.</em></h2>
+        <p class="sbody">Lower operational costs. Real-time settlements. Zero device logistics. Our platform transforms every bank partner into a next-generation payment provider.</p>
+      </div>
+      <div class="col-v" style="flex:1.3;">
+        <div class="dgrid" id="dgrid">
+          <div class="dcard" id="dc0" style="transition-delay:.0s"><div class="dcl">Settlement Volume</div><div class="dcv blue" id="dcv0">₺0</div><div class="dcbar"><div class="dcfill fb" id="dbar0"></div></div></div>
+          <div class="dcard" id="dc1" style="transition-delay:.12s"><div class="dcl">Cost Reduction</div><div class="dcv green" id="dcv1">0%</div><div class="dcbar"><div class="dcfill fg" id="dbar1"></div></div></div>
+          <div class="dcard" id="dc2" style="transition-delay:.22s"><div class="dcl">POS Devices Managed</div><div class="dcv green" id="dcv2">—</div><div class="dcbar"><div class="dcfill fs" id="dbar2"></div></div></div>
+          <div class="dcard" id="dc3" style="transition-delay:.34s"><div class="dcl">Settlement Latency</div><div class="dcv gold" id="dcv3">—</div><div class="dcbar"><div class="dcfill fo" id="dbar3"></div></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<div class="div"></div>
+
+<!-- SCENE 5: INDUSTRY -->
+<section class="scene" id="s-ind" style="padding:110px 0;background:var(--pearl);">
+  <div class="con">
+    <div style="text-align:center;max-width:540px;margin:0 auto;">
+      <div class="stag">Scene 06 — Industries</div>
+      <h2 class="sh2">One platform.<br><em>Every industry.</em></h2>
+      <p class="sbody" style="margin:14px auto 0;">The same pad. The same phone. The same SaaS. Deployed across every sector that handles payments.</p>
+    </div>
+    <div class="igrid" id="igrid">
+      <div class="icard" id="ic0"><div class="icico">🍽️</div><div class="icn">Restaurant</div><div class="icst"><div class="icd"></div>Live</div></div>
+      <div class="icard" id="ic1"><div class="icico">🏨</div><div class="icn">Hotel</div><div class="icst"><div class="icd"></div>Live</div></div>
+      <div class="icard" id="ic2"><div class="icico">🛍️</div><div class="icn">Retail</div><div class="icst"><div class="icd"></div>Live</div></div>
+      <div class="icard" id="ic3"><div class="icico">🎪</div><div class="icn">Events</div><div class="icst"><div class="icd"></div>Live</div></div>
+      <div class="icard" id="ic4"><div class="icico">⛽</div><div class="icn">Fuel &amp; Auto</div><div class="icst"><div class="icd"></div>Live</div></div>
+      <div class="icard" id="ic5"><div class="icico">✈️</div><div class="icn">Transport</div><div class="icst"><div class="icd"></div>Live</div></div>
+    </div>
+    <div class="ibnr" id="ibnr">
+      <div><div class="ibnt">ONE PLATFORM — <em>Disrupting every industry</em> with zero hardware</div><div class="ibns">Scalable, universal, always-on payment infrastructure</div></div>
+      <div class="ibnb">Learn More</div>
+    </div>
+  </div>
+</section>
+<div class="div"></div>
+
+<!-- SCENE 6: FINAL -->
+<section class="scene" id="s-final">
+  <div class="blob" style="width:700px;height:700px;background:radial-gradient(#dbeafe,transparent);top:50%;left:50%;transform:translate(-50%,-50%);opacity:.2;"></div>
+  <div style="position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;width:100%;">
+    <div class="fphone">📱</div>
+    <div class="flines" id="flines">
+      <div class="fl st" id="fl0">No Cashier</div>
+      <div class="fl st" id="fl1">No Kiosk</div>
+      <div class="fl st" id="fl2">No POS</div>
+      <div class="fl st" id="fl3">No Hardware</div>
+      <div class="fl sep" id="flsep"></div>
+      <div class="fl br" id="fl4">Just Software</div>
+      <div class="fl br" id="fl5">Just Your Phone</div>
+    </div>
+    <div class="facts" id="facts">
+      <div class="fac" id="fa0"><div class="facc">👤</div><div class="facn">Customer</div></div>
+      <div class="fac" id="fa1"><div class="facc">👨‍🍳</div><div class="facn">Staff</div></div>
+      <div class="fac" id="fa2"><div class="facc">💼</div><div class="facn">Owner</div></div>
+      <div class="fac" id="fa3"><div class="facc">🏦</div><div class="facn">Bank</div></div>
+      <div class="fac" id="fa4"><div class="facc">⚙️</div><div class="facn">Operations</div></div>
+    </div>
+    <div class="ffoot"><div class="fflogo">Pay<span>Layer</span></div><div class="fftag">Dijital Solutions · SaaS Payment Ecosystem · 2025</div></div>
+  </div>
+</section>
+
+<script>
+gsap.registerPlugin(ScrollTrigger);
+
+// CURSOR
+const cur=document.getElementById('cur'),curR=document.getElementById('cur-r');
+let mx=0,my=0,rx=0,ry=0;
+document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;cur.style.left=mx+'px';cur.style.top=my+'px';});
+(function lp(){rx+=(mx-rx)*.1;ry+=(my-ry)*.1;curR.style.left=rx+'px';curR.style.top=ry+'px';requestAnimationFrame(lp);})();
+
+// PROGRESS
+window.addEventListener('scroll',()=>{ document.getElementById('prog').style.width=(window.scrollY/(document.body.scrollHeight-window.innerHeight)*100)+'%'; });
+
+// SIDE DOTS
+const sids=['s-hero','s-table','s-hw','s-tech','s-net','s-banks','s-ind','s-final'];
+const sdc=document.getElementById('sdots');
+sids.forEach(()=>{ const d=document.createElement('div');d.className='sd';sdc.appendChild(d); });
+const sdArr=document.querySelectorAll('.sd');
+sids.forEach((id,i)=>{
+  ScrollTrigger.create({trigger:'#'+id,start:'top center',end:'bottom center',
+    onEnter:()=>{sdArr.forEach(d=>d.classList.remove('on'));sdArr[i]?.classList.add('on');},
+    onEnterBack:()=>{sdArr.forEach(d=>d.classList.remove('on'));sdArr[i]?.classList.add('on');}
+  });
+});
+sdArr.forEach((d,i)=>d.addEventListener('click',()=>document.getElementById(sids[i])?.scrollIntoView({behavior:'smooth'})));
+
+// HERO
+gsap.timeline({delay:.15})
+  .from('#htag',{y:20,opacity:0,duration:.75,ease:'power3.out'})
+  .from('#hh1',{y:50,opacity:0,duration:1,ease:'power4.out'},'-=.5')
+  .from('#hsub',{y:22,opacity:0,duration:.75,ease:'power3.out'},'-=.55')
+  .from('#hbtns',{y:18,opacity:0,duration:.65,ease:'power3.out'},'-=.45')
+  .call(()=>document.querySelectorAll('.hcard').forEach(c=>c.classList.add('on')),null,'-=.25');
+setTimeout(()=>{ cnt(document.getElementById('hcv1'),0,1240,'',1600); cnt(document.getElementById('hcv2'),0,8400000,'₺',2000,true); },800);
+
+// PAD LAYERS
+ScrollTrigger.create({trigger:'#s-table',start:'top 65%',onEnter(){
+  [0,1,2,3].forEach(i=>setTimeout(()=>{
+    document.getElementById('p'+i)?.classList.add('on');
+    setTimeout(()=>document.getElementById('pb'+i)?.classList.add('on'),450);
+  },i*180));
+}});
+ScrollTrigger.create({trigger:'#s-table',start:'top top',end:'bottom bottom',scrub:.7,onUpdate(s){
+  const p=s.progress;
+  [['p3',0],['p2',1],['p1',2],['p0',3]].forEach(([id,idx])=>{
+    const el=document.getElementById(id);if(!el)return;
+    const base=[10,105,200,295][idx];
+    const sp=p>.2?-65*idx*Math.min((p-.2)/.65,1):0;
+    el.style.top=(base+sp)+'px';
+  });
+}});
+
+// HARDWARE
+ScrollTrigger.create({trigger:'#s-hw',start:'top 62%',onEnter(){
+  setTimeout(()=>[0,1,2].forEach((i)=>setTimeout(()=>document.getElementById('hw'+i)?.classList.add('diss'),i*200)),300);
+  setTimeout(()=>document.getElementById('rb')?.classList.add('on'),1300);
+}});
+
+// TECH ROWS
+ScrollTrigger.create({trigger:'#s-tech',start:'top 62%',onEnter(){
+  [0,1,2,3].forEach(i=>setTimeout(()=>document.getElementById('tr'+i)?.classList.add('on'),i*150));
+}});
+
+// NETWORK
+ScrollTrigger.create({trigger:'#s-net',start:'top 62%',onEnter(){
+  [0,1,2,3,4,5].forEach(i=>setTimeout(()=>document.getElementById('np'+i)?.classList.add('on'),i*140));
+  setTimeout(drawNet,350);
+  setTimeout(()=>document.getElementById('novt')?.classList.add('on'),1000);
+}});
+
+function drawNet(){
+  const svg=document.getElementById('nsvg');
+  const wrap=document.querySelector('.nwrap');
+  if(!svg||!wrap)return;
+  const W=wrap.offsetWidth,H=400;
+  const nodes=[
+    {id:'np0',x:.47,y:.52},{id:'np1',x:.68,y:.12},{id:'np2',x:.71,y:.78},
+    {id:'np3',x:.16,y:.16},{id:'np4',x:.12,y:.80},{id:'np5',x:.82,y:.50}
+  ];
+  const pairs=[[0,1],[0,2],[0,3],[0,4],[0,5],[1,3],[2,5]];
+  svg.innerHTML='<defs><linearGradient id="lg" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="rgba(26,86,219,.12)"/><stop offset=".5" stop-color="rgba(14,165,233,.18)"/><stop offset="1" stop-color="rgba(26,86,219,.12)"/></linearGradient></defs>';
+  pairs.forEach(([a,b],idx)=>{
+    const na=nodes[a],nb=nodes[b];
+    const ax=na.x*W,ay=na.y*H,bx=nb.x*W,by=nb.y*H;
+    const line=document.createElementNS('http://www.w3.org/2000/svg','line');
+    line.setAttribute('x1',ax);line.setAttribute('y1',ay);line.setAttribute('x2',bx);line.setAttribute('y2',by);
+    line.setAttribute('stroke','url(#lg)');line.setAttribute('stroke-width','1.5');
+    const len=Math.hypot(bx-ax,by-ay);
+    line.style.strokeDasharray=len;line.style.strokeDashoffset=len;
+    line.style.transition=`stroke-dashoffset .7s ease ${idx*.08}s`;
+    svg.appendChild(line);
+    requestAnimationFrame(()=>requestAnimationFrame(()=>line.style.strokeDashoffset=0));
+    // Moving dot
+    const dot=document.createElementNS('http://www.w3.org/2000/svg','circle');
+    dot.setAttribute('r','3');dot.setAttribute('fill','rgba(26,86,219,.65)');
+    const mp=document.createElementNS('http://www.w3.org/2000/svg','path');
+    mp.setAttribute('d',`M${ax},${ay} L${bx},${by}`);mp.setAttribute('id','mp'+idx);mp.setAttribute('fill','none');
+    svg.appendChild(mp);
+    const am=document.createElementNS('http://www.w3.org/2000/svg','animateMotion');
+    am.setAttribute('dur',(2.2+idx*.3)+'s');am.setAttribute('repeatCount','indefinite');am.setAttribute('begin',(idx*.35)+'s');
+    const mpath=document.createElementNS('http://www.w3.org/2000/svg','mpath');
+    mpath.setAttribute('href','#mp'+idx);am.appendChild(mpath);dot.appendChild(am);svg.appendChild(dot);
+  });
+}
+
+// BANKS
+ScrollTrigger.create({trigger:'#s-banks',start:'top 62%',onEnter(){
+  [0,1,2,3].forEach(i=>setTimeout(()=>{
+    document.getElementById('dc'+i)?.classList.add('on');
+    const b=document.getElementById('dbar'+i);
+    if(b)b.style.width=['87%','64%','100%','93%'][i];
+  },i*160));
+  setTimeout(()=>cnt(document.getElementById('dcv0'),0,2840000,'₺',2000,true),300);
+  setTimeout(()=>cnt(document.getElementById('dcv1'),0,64,'%',1800),500);
+  setTimeout(()=>{const e=document.getElementById('dcv2');if(e){e.textContent='ZERO';e.style.color='var(--green)';}},700);
+  setTimeout(()=>cnt(document.getElementById('dcv3'),980,120,'ms',1600,false,true),900);
+}});
+
+// INDUSTRY
+ScrollTrigger.create({trigger:'#s-ind',start:'top 62%',onEnter(){
+  [0,1,2,3,4,5].forEach(i=>setTimeout(()=>document.getElementById('ic'+i)?.classList.add('on'),i*95));
+  setTimeout(()=>document.getElementById('ibnr')?.classList.add('on'),700);
+}});
+
+// FINAL
+ScrollTrigger.create({trigger:'#s-final',start:'top 62%',onEnter(){
+  ['fl0','fl1','fl2','fl3','flsep','fl4','fl5'].forEach((id,i)=>setTimeout(()=>document.getElementById(id)?.classList.add('on'),i*150));
+  [0,1,2,3,4].forEach(i=>setTimeout(()=>document.getElementById('fa'+i)?.classList.add('on'),1150+i*110));
+}});
+
+// COUNTER
+function cnt(el,from,to,pfx,dur,thou=false,rev=false){
+  if(!el)return;
+  if(rev)[from,to]=[to,from];
+  const s=Date.now();
+  (function loop(){
+    const p=Math.min((Date.now()-s)/dur,1),e=1-Math.pow(1-p,3);
+    const v=Math.floor(from+(to-from)*e);
+    el.textContent=(pfx==='₺'?'₺':'')+(thou?Math.abs(v).toLocaleString('tr-TR'):Math.abs(v))+(pfx!=='₺'?pfx:'');
+    if(p<1)requestAnimationFrame(loop);
+  })();
+}
+
+window.addEventListener('resize',()=>ScrollTrigger.refresh());
+</script>
+</body>
+</html>
